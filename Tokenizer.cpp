@@ -10,10 +10,15 @@ Tokenizer::Tokenizer(const string& s){
 }
 
 // Need to find out how tokens must be, especially their ending
-bool Tokenizer::thereIsPunctuation(const string& s){
+void Tokenizer::normalizeWord(string& s){
+	unsigned int i;
 
+	// Removing accents, punctuation and converting to lower case
+	cleaningWord(s);
 
-	return false;
+	// Removing whitespaces within the token
+	s.erase(std::remove_if(s.begin(), s.end(),[](char x){return std::isspace(x);}),s.end());
+
 }
 
 // Splits a string "s" in "c"
@@ -46,9 +51,7 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 		for (string e : aux){
 
 			if (aux.size()){
-				while (aux.size() && thereIsPunctuation(e)){
-					e.pop_back();
-				}
+				this->normalizeWord(e);
 				v.push_back(e);
 			}
 

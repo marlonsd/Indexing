@@ -9,14 +9,17 @@
 
 FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 
-crawler: main.o tokenizer.o
-	g++ -std=c++11 tokenizer.o main.o $(FLAGS) -o indexing
+crawler: main.o tokenizer.o func.o
+	g++ -std=c++11 func.o tokenizer.o main.o $(FLAGS) -o indexing
 
-main.o: main.cpp tokenizer.h
+main.o: main.cpp tokenizer.h func.h
 	g++ -std=c++11 $(FLAGS) -c main.cpp
 
-tokenizer.o: tokenizer.cpp tokenizer.h
-	g++ -std=c++11 -c tokenizer.cpp	
+tokenizer.o: tokenizer.cpp tokenizer.h func.h
+	g++ -std=c++11 -c tokenizer.cpp
+
+func.o: func.cpp func.h
+	g++ -std=c++11 -c func.cpp		
 
 clean:
 	rm *.o indexing

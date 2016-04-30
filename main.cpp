@@ -5,7 +5,7 @@
 int main(int argc, const char * argv[]) {  
 
 	//Parse some html code
-	std::string html = "<html><body>hey, this the whole vector<char> v</body></html>";
+	std::string html = "<html><body>hey, this Is (é) the whole vector<char> v</body></html>";
 	htmlcxx::HTML::ParserDom parser;
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(html);
 
@@ -16,13 +16,13 @@ int main(int argc, const char * argv[]) {
 	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
 	tree<htmlcxx::HTML::Node>::iterator end = dom.end(); 
 
-	for (; it != end; ++it) {
-		cout << it->tagName() << endl;
-		if (it->tagName() == "A") {
-			it->parseAttributes();
-			std::cout << it->attributes("href");
-		}
-	}
+	// for (; it != end; ++it) {
+	// 	cout << it->tagName() << endl;
+	// 	if (it->tagName() == "A") {
+	// 		it->parseAttributes();
+	// 		std::cout << it->attributes("href");
+	// 	}
+	// }
 
 	//Dump all text of the document
 	it = dom.begin();

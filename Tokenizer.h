@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "func.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ class Tokenizer{
 private:
 	vector<string> tokens;
 
-	bool thereIsPunctuation(const string& s);
+	void normalizeWord(string& s);
 	void split(const string& s, char c, vector<string>& v);
 	void generatingTokens(const string& s, vector<string>& v);
 
