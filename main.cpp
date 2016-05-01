@@ -2,7 +2,59 @@
 #include <html/ParserDom.h>  
 #include "Tokenizer.h"
 
+#define FILENAME "htmls"
+
+void indexing(string doc, int index, string url);
+
 int main(int argc, const char * argv[]) {  
+
+	fstream input;
+	string acc, url;
+	int pipe_count = 0;
+	int file_index = 0;
+
+	input.open(FILENAME, ios::in);
+
+	if (input.is_open()){
+		while (!input.eof()){
+			string aux;
+			input >> aux;
+
+			// cout << aux << endl;
+
+			std::size_t found = aux.find("|||");
+
+			if (found != std::string::npos) {
+				pipe_count++;
+				if (pipe_count >= 3){
+					
+					indexing(acc, file_index, url);
+					
+					pipe_count = 1;
+					file_index++;
+
+					acc = "";
+					url = "";
+				}
+			} else {
+
+				if (pipe_count <= 1){
+					url+=aux+" ";
+				} else {
+					acc+=aux+" ";
+				}
+			}
+		}
+	}
+
+	exit(0);
+}
+
+void indexing(string doc, int index, string url){
+	cout << "\t\tDocument " << index << endl;
+	cout << "URL:\t " << url << endl;
+	cout << "Content: " << doc << endl;
+	cout << "------------------" << endl << endl;	
 
 	//Parse some html code
 	std::string html = "<html><body>hey, this Is (é) the whole vector<char> v</body></html>";
@@ -43,5 +95,4 @@ int main(int argc, const char * argv[]) {
 	while (t.size() > 0){
 		cout << t.getToken() << endl;
 	}
-
 }
