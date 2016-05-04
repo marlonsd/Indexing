@@ -1,22 +1,22 @@
-# UNAME_S := $(shell uname -s)
-# TOP := $(shell pwd)
+UNAME_S := $(shell uname -s)
+TOP := $(shell pwd)
 # ifeq ($(UNAME_S),Linux)
-#     FLAGS += $(TOP)/chilkat/lib/libchilkat-9.5.0.so
+# 	FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 # endif
 # ifeq ($(UNAME_S),Darwin)
-#     FLAGS += chilkat/lib/libchilkat.a
+# 	FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 # endif
 
 FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 
-crawler: main.o tokenizer.o func.o
-	g++ -std=c++11 func.o tokenizer.o main.o $(FLAGS) -o indexing
+indexing: main.o tokenizer.o func.o
+	g++ -std=c++11 func.o Tokenizer.o main.o $(FLAGS) -o indexing
 
-main.o: main.cpp tokenizer.h func.h
+main.o: main.cpp Tokenizer.h func.h
 	g++ -std=c++11 $(FLAGS) -c main.cpp
 
-tokenizer.o: tokenizer.cpp tokenizer.h func.h
-	g++ -std=c++11 -c tokenizer.cpp
+tokenizer.o: Tokenizer.cpp Tokenizer.h func.h
+	g++ -std=c++11 -c Tokenizer.cpp
 
 func.o: func.cpp func.h
 	g++ -std=c++11 -c func.cpp		
@@ -26,3 +26,5 @@ clean:
 
 # dir:
 # 	mkdir htmls logs backup cache
+
+# Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"

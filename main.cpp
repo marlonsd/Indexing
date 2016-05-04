@@ -1,10 +1,21 @@
-#include <iostream>  
-#include <html/ParserDom.h>  
+#include <iostream>
+#include <unordered_map>
+#include <html/ParserDom.h>
 #include "Tokenizer.h"
 
 #define FILENAME "htmls"
 
-void indexing(string doc, int index, string url);
+struct FileList {
+	int file_index;
+	vector<int> position;
+
+	bool operator==(const FileList &other) const
+	{ return (file_index == other.file_index
+			&& position == other.position);
+	}
+};
+
+void indexing(string doc, int index, string url, unordered_map<string, vector<FileList>>& inverted_index);
 
 int main(int argc, const char * argv[]) {  
 
@@ -12,6 +23,8 @@ int main(int argc, const char * argv[]) {
 	string acc, url;
 	int pipe_count = 0;
 	int file_index = 0;
+
+	unordered_map<string, vector<FileList>> inverted_index;
 
 	input.open(FILENAME, ios::in);
 
@@ -28,7 +41,7 @@ int main(int argc, const char * argv[]) {
 				pipe_count++;
 				if (pipe_count >= 3){
 					
-					indexing(acc, file_index, url);
+					indexing(acc, file_index, url, inverted_index);
 					
 					pipe_count = 1;
 					file_index++;
@@ -47,22 +60,36 @@ int main(int argc, const char * argv[]) {
 		}
 	}
 
+	for (auto i : inverted_index){
+		vector<FileList> list_of_files = i.second;
+		cout << i.first << endl;
+		for (auto v : list_of_files){
+			cout << "Document: " << v.file_index << endl;
+			for (auto val : v.position){
+				cout << val << " ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+		cout << endl;
+	}
+
 	exit(0);
 }
 
-void indexing(string doc, int index, string url){
+void indexing(string doc, int index, string url, unordered_map<string, vector<FileList>>& inverted_index){
 	cout << "\t\tDocument " << index << endl;
 	cout << "URL:\t " << url << endl;
 	cout << "Content: " << doc << endl;
 	cout << "------------------" << endl << endl;	
 
 	//Parse some html code
-	std::string html = "<html><body>hey, this Is (é) the whole vector<char> v</body></html>";
+	// string html = "<html><body>hey, this Is (é) the whole vector<char> v</body></html>";
 	htmlcxx::HTML::ParserDom parser;
-	tree<htmlcxx::HTML::Node> dom = parser.parseTree(html);
+	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
 
 	//Print whole DOM tree
-	std::cout << dom << std::endl;
+	cout << dom << std::endl;
 
 	//Dump all links in the tree
 	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
@@ -92,7 +119,43 @@ void indexing(string doc, int index, string url){
 	Tokenizer t(text);
 
 	cout << "Tokenized words" << endl;
+	int word_id = 0;
 	while (t.size() > 0){
-		cout << t.getToken() << endl;
+		string token = t.getToken();
+
+		if (token.size()) {
+
+			auto search = inverted_index.find(token);
+
+			if(search != inverted_index.end()) {
+				// Token is in index already
+
+				// Is There an entry for the document?
+				if (inverted_index[token].back().file_index == index){
+					inverted_index[token].back().position.push_back(word_id);					
+				}
+				else {
+					FileList list;
+					list.file_index = index;
+					list.position.push_back(word_id);
+
+					inverted_index[token].push_back(list);
+				}
+			}
+			else {
+				// Token has not been added to the index yet
+				FileList list;
+				list.file_index = index;
+				list.position.push_back(word_id);
+
+				cout << token << " " << index << " " << word_id << endl;
+
+				inverted_index.insert(std::make_pair(token,vector<FileList>()));
+
+				inverted_index[token].push_back(list);
+
+			}
+			word_id++;
+		}
 	}
 }
