@@ -11,5 +11,8 @@
 using namespace std;
 
 void cleaningWord(string& str);
+int partition(vector<array<string,4>>& arr, const int left, const int right);
+void quickSort(vector<array<string,4>>& arr, const int left, const int right, const int sz);
+bool compareData(const array<string,4>& A, array<string,4>& B);
 
 #endif

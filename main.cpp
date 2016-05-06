@@ -1,10 +1,12 @@
 #include <iostream>
 #include <unordered_map>
+#include <cstdlib>
 #include <html/ParserDom.h>
 #include "Tokenizer.h"
 
 #define FILENAME "htmls"
-#define MEMORY_LIMITE 250000 // (bytes)
+// #define MEMORY_LIMITE 250000 // (bytes)
+#define MEMORY_LIMITE 160 // (bytes)
 
 #define INDEX_FILE_NAME "index/backup_index"
 
@@ -18,16 +20,15 @@ struct FileList {
 	}
 };
 
-unordered_map<string, int> vocabulary; 		// <word, id>
-vector<vector<FileList>> inverted_index;	// <id_word, list of occurrences>
+unordered_map<string, int> vocabulary; 					// <word, id>
+unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>
 
 int word_index = 0;
 
 int memory_usage = 0;
 
 void indexing(string doc, int index, string url);
-void memory_check();
-void memory_dump();
+void memory_check(bool force=false);
 
 int main(int argc, const char * argv[]) {  
 
@@ -35,6 +36,9 @@ int main(int argc, const char * argv[]) {
 	string acc, url;
 	int pipe_count = 0;
 	int file_index = 0;
+
+	input.open(INDEX_FILE_NAME, ios::out);
+	input.close();
 
 	input.open(FILENAME, ios::in);
 
@@ -85,7 +89,7 @@ int main(int argc, const char * argv[]) {
 	for (auto word : vocabulary){
 		cout << "Word: \"" << word.first << "\"" << endl;
 
-		for (auto document : inverted_index[word.second]){
+		for (auto document : inverted_index[word.first]){
 			cout << "  Document " << document.file_index << endl;
 			cout << "\t";
 			for (auto file : document.position){
@@ -96,7 +100,8 @@ int main(int argc, const char * argv[]) {
 		cout << endl;
 	}
 
-	memory_dump();
+	// memory_dump();
+	memory_check(true);
 
 	exit(0);
 }
@@ -185,23 +190,27 @@ void indexing(string doc, int index, string url){
 				vocabulary[token] = word_index;
 				word_index++;
 
-				inverted_index.push_back(vector<FileList>());
+				// inverted_index.push_back(vector<FileList>());
 			}
 
+			auto search2 = inverted_index.find(token);
+
+			if (search2 == inverted_index.end()){
+				inverted_index[token] = vector<FileList>();
+			}
 
 			// Testinf if token had already been seen in document index
-			if (inverted_index.size() > 0 &&
-				inverted_index[vocabulary[token]].size() > 0 &&
-				inverted_index[vocabulary[token]].back().file_index == index) {
-					inverted_index[vocabulary[token]].back().position.push_back(word_id);
-				
+			if (//inverted_index.size() > 0 &&
+				inverted_index[token].size() > 0 &&
+				inverted_index[token].back().file_index == index) {
+					inverted_index[token].back().position.push_back(word_id);
 			}
 			else {
 				FileList list;
 				list.file_index = index;
 				list.position.push_back(word_id);
 
-				inverted_index[vocabulary[token]].push_back(list);
+				inverted_index[token].push_back(list);
 			}
 
 			// <IDw, IDd, fw, position>
@@ -217,70 +226,65 @@ void indexing(string doc, int index, string url){
 	}
 }
 
-void memory_check(){
-	if (memory_usage > MEMORY_LIMITE) {
-		fstream f;
+void memory_check(bool force){
 
-		f.open(INDEX_FILE_NAME, ios::out | ios::app);
+	if (force || memory_usage >= MEMORY_LIMITE) {
 
+		cout << "memory_check " << force << endl;
+
+		int index_size = inverted_index.size();
+		fstream f, sorted_f;
+
+		f.open("aux_file", ios::out);
+		int count = 0;
 		for (auto word : vocabulary){
-			for (auto document : inverted_index[word.second]){
+			for (auto document : inverted_index[word.first]){
 				int list_size = document.position.size();
 				for (auto pos : document.position){
-					f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
+					// f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
+					f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
+					count++;
 				}
 			}
 		}
-	}
-}
+		f.close();
 
-void memory_dump(){
-	int index_size = inverted_index.size();
-	fstream f, sorted_f;
+		inverted_index.clear();
+		memory_usage = 0;
 
-	f.open("aux_file", ios::out);
+		f.open("aux_file", ios::in);
+		sorted_f.open(INDEX_FILE_NAME, ios::out | ios::app);
 
-	for (auto word : vocabulary){
-		for (auto document : inverted_index[word.second]){
-			int list_size = document.position.size();
-			for (auto pos : document.position){
-				// f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
-				f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
-			}
+		string line[4];
+		vector<array<string,4>> all_lines;
+
+		for (int i = 0; i < count; i++){
+			f >> line[0];
+			f >> line[1];
+			f >> line[2];
+			f >> line[3];
+
+			all_lines.push_back({line[0],line[1],line[2],line[3]});
 		}
+
+		sort(begin(all_lines), end(all_lines),
+			[](const array<string,4>& A, array<string,4>& B) {
+				return (
+					(A[0] < B[0]) ||									// Sorting by word id
+					((A[0] == B[0]) && (A[1] < B[1])) ||				// Sorting by document id
+					((A[0] == B[0]) && (A[1] == B[1]) && (A[3] < B[3]))	// Sorting by position
+					);
+			});
+
+		for (auto s : all_lines){
+			sorted_f << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << endl;
+		}
+
+		sorted_f << "_______" << endl;
+
+		f.close();
+		sorted_f.close();
+
+		
 	}
-	f.close();
-
-	f.open("aux_file", ios::in);
-	sorted_f.open(INDEX_FILE_NAME, ios::out | ios::app);
-
-	inverted_index.clear();
-	inverted_index.shrink_to_fit();
-
-	// for (int i = 0; i < backup.size(); i++){
-	// 	for (auto list : backup[i]){
-	// 		f << "<" << i << "," << list[0] << ","  << list[1] << "," << list[2] << ">" << endl;
-	// 	}
-	// }
-
-	string line[4];
-	vector<array<string,4>> all_lines;
-
-	while (!f.eof()){
-		f >> line[0];
-		f >> line[1];
-		f >> line[2];
-		f >> line[3];
-
-		all_lines.push_back({line[0],line[1],line[2],line[3]});
-	}
-
-	for (auto s : all_lines){
-		cout << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << endl;
-	}
-
-
-
-	f.close();
-	sorted_f.close();
 }
