@@ -7,7 +7,8 @@
 
 #define FILENAME "htmls"
 // #define MEMORY_LIMITE 250000 // (bytes)
-#define MEMORY_LIMITE 160 // (bytes)
+// #define MEMORY_LIMITE 160 // (bytes)
+#define MEMORY_LIMITE 8000000000 // (bytes)
 
 /* <IDw, IDd, fw, position>
  * <int, int, int, int>
@@ -16,9 +17,12 @@
 */
 #define INDEX_LINE_SIZE 32
 
+#define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
+
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/backup_index"
 #define INDEX_SORTED_FILE_NAME "index/sorted_index"
+#define VOCABULARY_FILE_NAME "index/vocabulary"
 
 struct FileList {
 	int file_index;
@@ -35,16 +39,21 @@ unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occu
 
 int word_index = 0, memory_usage = 0, total_size_index = 0;
 
+string vocabulary_buffer = "";
+
+string parsing(string doc);
 void indexing(string doc, int index, string url);
 void memory_dump();
 void sorted_index();
+void vocabulary_dump();
 
 int main(int argc, const char * argv[]) {  
 
 	fstream input;
 	string acc, url;
-	int pipe_count = 0;
+	int pipe_count = 0, state = 0;
 	int file_index = 0;
+	std::size_t found;
 
 	input.open(INDEX_AUX_FILE_NAME, ios::out);
 	input.close();
@@ -55,6 +64,9 @@ int main(int argc, const char * argv[]) {
 	input.open(INDEX_SORTED_FILE_NAME, ios::out);
 	input.close();
 
+	input.open(VOCABULARY_FILE_NAME, ios::out);
+	input.close();
+
 	input.open(FILENAME, ios::in);
 
 	if (input.is_open()){
@@ -62,44 +74,42 @@ int main(int argc, const char * argv[]) {
 			string aux;
 			input >> aux;
 
-			std::size_t found = aux.find("|||");
+			switch(state){
+				case 0:
+					found = aux.find("|||");
 
-			if (found != std::string::npos) {
-				pipe_count++;
-				if (pipe_count >= 3){
-					
-					indexing(acc, file_index, url);
-					
-					pipe_count = 1;
-					file_index++;
+					if (found != std::string::npos) {
+						state = 1;
+					}
+					break;
+				case 1:
+					found = aux.find("|");
 
-					acc = "";
-					url = "";
-				}
-			} else {
+					if (found != std::string::npos) {
+						state = 2;
+					} else {
+						url+=aux+" ";
+					}
+					break;
+				case 2:
+					found = aux.find("|||");
 
-				if (pipe_count <= 1){
-					url+=aux+" ";
-				} else {
-					acc+=aux+" ";
-				}
+					if (found != std::string::npos) {
+						state = 1;
+
+						indexing(acc, file_index, url);
+						file_index++;
+
+						acc = "";
+						url = "";
+
+					} else {
+						acc+=aux+" ";
+					}
+					break;
 			}
 		}
 	}
-
-	// for (auto i : inverted_index){
-	// 	vector<FileList> list_of_files = i.second;
-	// 	cout << i.first << endl;
-	// 	for (auto v : list_of_files){
-	// 		cout << "Document: " << v.file_index << endl;
-	// 		for (auto val : v.position){
-	// 			cout << val << " ";
-	// 		}
-	// 		cout << endl;
-	// 	}
-	// 	cout << endl;
-	// 	cout << endl;
-	// }
 
 	for (auto word : vocabulary){
 		cout << "Word: \"" << word.first << "\"" << endl;
@@ -117,106 +127,63 @@ int main(int argc, const char * argv[]) {
 
 	// memory_dump();
 	sorted_index();
+	vocabulary_dump();
 
 	exit(0);
 }
 
-void indexing(string doc, int index, string url){
-	// cout << "\t\tDocument " << index << endl;
-	// cout << "URL:\t " << url << endl;
-	// cout << "Content: " << doc << endl;
-	// cout << "------------------" << endl << endl;	
-
-	//Parse some html code
-	// string html = "<html><body>hey, this Is (é) the whole vector<char> v</body></html>";
+string parsing(string doc){
+	//Parse doc's html code
 	htmlcxx::HTML::ParserDom parser;
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
 
-	//Print whole DOM tree
-	// cout << dom << std::endl;
-
-	//Dump all links in the tree
+	//Dump all text of the document
 	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
 	tree<htmlcxx::HTML::Node>::iterator end = dom.end(); 
-
-	// for (; it != end; ++it) {
-	// 	cout << it->tagName() << endl;
-	// 	if (it->tagName() == "A") {
-	// 		it->parseAttributes();
-	// 		std::cout << it->attributes("href");
-	// 	}
-	// }
-
-	//Dump all text of the document
-	it = dom.begin();
-	end = dom.end();
 	string text = "";
 
 	for (; it != end; ++it) {
 		if ((!it->isTag()) && (!it->isComment())) {
-			// std::cout << it->text() << endl;
 			text.append(it->text());
 		}
 	}
 
-	// cout << text << endl;
-	Tokenizer t(text);
+	return text;
+}
 
-	// cout << "Tokenized words" << endl;
+void indexing(string doc, int index, string url){
+	
+	// Generating tokens
+	Tokenizer t(parsing(doc));
+
+	// Iterating through tokens
 	int word_id = 0;
 	while (t.size() > 0){
 		string token = t.getToken();
 
 		if (token.size()) {
 
+			// Testinf if token is not already in the vocabulary
 			auto search = vocabulary.find(token);
-
-			// if(search != vocabulary.end()) {
-				// Token is in index already
-
-				// Is There an entry for the document?
-				// if (inverted_index[token].back().file_index == index){
-				// 	inverted_index[token].back().position.push_back(word_id);
-				// }
-				// else {
-				// 	FileList list;
-				// 	list.file_index = index;
-				// 	list.position.push_back(word_id);
-
-				// 	inverted_index[token].push_back(list);
-				// }
-			// }
-			// else {
-				// Token has not been added to the index yet
-				// FileList list;
-				// list.file_index = index;
-				// list.position.push_back(word_id);
-
-				// cout << token << " " << index << " " << word_id << endl;
-
-				// inverted_index.insert(std::make_pair(token,vector<FileList>()));
-
-				// inverted_index[token].push_back(list);
-
-			// }
-
-			// Testinf if token is already in the vocabulary
 			if (search == vocabulary.end()){
 				vocabulary[token] = word_index;
 				word_index++;
 
-				// inverted_index.push_back(vector<FileList>());
+				vocabulary_buffer+=(token+'\n');
+
+				if (vocabulary_buffer.length() >= LOCAL_VOCABULARY_SIZE){
+					vocabulary_dump();
+				}
 			}
 
+			// Testinf if token is not already in the index
 			auto search2 = inverted_index.find(token);
-
 			if (search2 == inverted_index.end()){
 				inverted_index[token] = vector<FileList>();
 			}
 
 			// Testinf if token had already been seen in document index
-			if (//inverted_index.size() > 0 &&
-				inverted_index[token].size() > 0 &&
+			if (inverted_index[token].size() > 0 &&
 				inverted_index[token].back().file_index == index) {
 					inverted_index[token].back().position.push_back(word_id);
 			}
@@ -249,7 +216,6 @@ void memory_dump(){
 		for (auto document : inverted_index[word.first]){
 			int list_size = document.position.size();
 			for (auto pos : document.position){
-				// f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
 				f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
 				count++;
 			}
@@ -304,9 +270,10 @@ void sorted_index(){
 		memory_dump();
 	}
 
+	// Deciding number of splits in backup_index
 	int index_split = ((total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
-						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :
-						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));
+						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
+						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
 	int read_times[index_split];
 	fstream sorted_file, pointers[index_split];
 	ifstream is;
@@ -336,42 +303,29 @@ void sorted_index(){
 		aux[4]=i;
 		for (int j = 0; j < 4; j++){
 			pointers[i] >> value;
-			// cout << value << " ";
 			aux[j] = stoi(value);
 		}
-		// cout << aux[4] << endl;
-
-		// loop_control = loop_control || (!pointers[i].eof());
 
 		min_heap.push(aux);
 		read_times[i]++;
 	}
 
-	// cout << "Sorting index" << endl;
-
 	while (min_heap.size()){
-		// cout << min_heap.size() << endl;
 		aux = min_heap.top();
 		min_heap.pop();
 
 		sorted_file << "<";
 		for (int i = 0; i < 3; i++){
-			// cout << aux[i] << " ";
 			sorted_file << aux[i] << "," ;
 
 		}
 		sorted_file << aux[3] << ">" << endl;
-		// cout << aux[3] << endl;
-
 
 		if (read_times[aux[4]] < (MEMORY_LIMITE/INDEX_LINE_SIZE)){
-			// cout << "New value: ";
 			for (int j = 0; j < 4; j++){
 				pointers[aux[4]] >> value;
 				aux[j] = stoi(value);
-				// cout << value << " ";
 			}
-			// cout << aux[4] << endl;
 
 			min_heap.push(aux);
 			read_times[aux[4]]++;
@@ -384,4 +338,18 @@ void sorted_index(){
 	}
 
 	sorted_file.close();
+}
+
+void vocabulary_dump(){
+
+	fstream f;
+
+	f.open(VOCABULARY_FILE_NAME, ios::out | ios::app);
+
+	f << vocabulary_buffer;
+	
+	vocabulary_buffer = "";
+
+	f.close();
+
 }
