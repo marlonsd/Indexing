@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <cstdlib>
+#include <queue>
 #include <html/ParserDom.h>
 #include "Tokenizer.h"
 
@@ -8,7 +9,16 @@
 // #define MEMORY_LIMITE 250000 // (bytes)
 #define MEMORY_LIMITE 160 // (bytes)
 
-#define INDEX_FILE_NAME "index/backup_index"
+/* <IDw, IDd, fw, position>
+ * <int, int, int, int>
+ * 4*4 
+ * 36
+*/
+#define INDEX_LINE_SIZE 32
+
+#define INDEX_AUX_FILE_NAME "index/aux_index"
+#define INDEX_BACKUP_FILE_NAME "index/backup_index"
+#define INDEX_SORTED_FILE_NAME "index/sorted_index"
 
 struct FileList {
 	int file_index;
@@ -23,12 +33,11 @@ struct FileList {
 unordered_map<string, int> vocabulary; 					// <word, id>
 unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>
 
-int word_index = 0;
-
-int memory_usage = 0;
+int word_index = 0, memory_usage = 0, total_size_index = 0;
 
 void indexing(string doc, int index, string url);
-void memory_check(bool force=false);
+void memory_dump();
+void sorted_index();
 
 int main(int argc, const char * argv[]) {  
 
@@ -37,7 +46,13 @@ int main(int argc, const char * argv[]) {
 	int pipe_count = 0;
 	int file_index = 0;
 
-	input.open(INDEX_FILE_NAME, ios::out);
+	input.open(INDEX_AUX_FILE_NAME, ios::out);
+	input.close();
+
+	input.open(INDEX_BACKUP_FILE_NAME, ios::out);
+	input.close();
+
+	input.open(INDEX_SORTED_FILE_NAME, ios::out);
 	input.close();
 
 	input.open(FILENAME, ios::in);
@@ -101,7 +116,7 @@ int main(int argc, const char * argv[]) {
 	}
 
 	// memory_dump();
-	memory_check(true);
+	sorted_index();
 
 	exit(0);
 }
@@ -213,78 +228,160 @@ void indexing(string doc, int index, string url){
 				inverted_index[token].push_back(list);
 			}
 
-			// <IDw, IDd, fw, position>
-			// <int, int, int, int>
-			// 4*4 
-			// 36
-			memory_usage+=32;
+			memory_usage+=INDEX_LINE_SIZE;
 
 			word_id++;
 
-			memory_check();
+			if (memory_usage >= MEMORY_LIMITE){
+				memory_dump();
+			}
 		}
 	}
 }
 
-void memory_check(bool force){
+void memory_dump(){
 
-	if (force || memory_usage >= MEMORY_LIMITE) {
+	int count = 0, index_size = inverted_index.size();
+	fstream f, sorted_f;
 
-		cout << "memory_check " << force << endl;
-
-		int index_size = inverted_index.size();
-		fstream f, sorted_f;
-
-		f.open("aux_file", ios::out);
-		int count = 0;
-		for (auto word : vocabulary){
-			for (auto document : inverted_index[word.first]){
-				int list_size = document.position.size();
-				for (auto pos : document.position){
-					// f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
-					f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
-					count++;
-				}
+	f.open(INDEX_AUX_FILE_NAME, ios::out);
+	for (auto word : vocabulary){
+		for (auto document : inverted_index[word.first]){
+			int list_size = document.position.size();
+			for (auto pos : document.position){
+				// f << "<" << word.second << "," << document.file_index << ","  << list_size << "," << pos << ">" << endl;
+				f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
+				count++;
 			}
 		}
-		f.close();
-
-		inverted_index.clear();
-		memory_usage = 0;
-
-		f.open("aux_file", ios::in);
-		sorted_f.open(INDEX_FILE_NAME, ios::out | ios::app);
-
-		string line[4];
-		vector<array<string,4>> all_lines;
-
-		for (int i = 0; i < count; i++){
-			f >> line[0];
-			f >> line[1];
-			f >> line[2];
-			f >> line[3];
-
-			all_lines.push_back({line[0],line[1],line[2],line[3]});
-		}
-
-		sort(begin(all_lines), end(all_lines),
-			[](const array<string,4>& A, array<string,4>& B) {
-				return (
-					(A[0] < B[0]) ||									// Sorting by word id
-					((A[0] == B[0]) && (A[1] < B[1])) ||				// Sorting by document id
-					((A[0] == B[0]) && (A[1] == B[1]) && (A[3] < B[3]))	// Sorting by position
-					);
-			});
-
-		for (auto s : all_lines){
-			sorted_f << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << endl;
-		}
-
-		sorted_f << "_______" << endl;
-
-		f.close();
-		sorted_f.close();
-
-		
 	}
+
+	f.close();
+
+	inverted_index.clear();
+	memory_usage = 0;
+
+	f.open(INDEX_AUX_FILE_NAME, ios::in);
+	sorted_f.open(INDEX_BACKUP_FILE_NAME, ios::out | ios::app);
+
+	string value;
+	vector<array<int,4>> all_lines;
+
+	for (int i = 0; i < count; i++){
+		array<int,4> aux;
+
+		for (int j = 0; j < 4; j++){
+			f >> value;
+			aux[j] = stoi(value);
+		}
+
+		all_lines.push_back(aux);
+	}
+
+	sort(begin(all_lines), end(all_lines),
+		[](const array<int,4>& A, array<int,4>& B) {
+			return (
+				(A[0] < B[0]) ||									// Sorting by word id
+				((A[0] == B[0]) && (A[1] < B[1])) ||				// Sorting by document id
+				((A[0] == B[0]) && (A[1] == B[1]) && (A[3] < B[3]))	// Sorting by position
+				);
+		});
+
+	for (auto s : all_lines){
+		sorted_f << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << endl;
+	}
+
+	f.close();
+	sorted_f.close();
+
+	total_size_index += count;
+
+}
+
+void sorted_index(){
+
+	if (memory_usage) {
+		memory_dump();
+	}
+
+	int index_split = ((total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
+						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :
+						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));
+	int read_times[index_split];
+	fstream sorted_file, pointers[index_split];
+	ifstream is;
+	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
+	bool loop_control = false;
+	array<int,5> aux;
+
+	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
+
+	for (int i = 0; i < index_split; i++){
+		pointers[i].open(INDEX_BACKUP_FILE_NAME, ios::in);
+		read_times[i] = 0;
+	}
+
+	string value;
+
+	for (int i = 1; i < index_split; i++){
+		for(int k = 0; k < (MEMORY_LIMITE/INDEX_LINE_SIZE)*i; k++){
+			for (int j = 0; j < 4; j++){
+				pointers[i] >> value;
+			}
+		}
+	}
+
+
+	for (int i = 0; i < index_split; i++){
+		aux[4]=i;
+		for (int j = 0; j < 4; j++){
+			pointers[i] >> value;
+			// cout << value << " ";
+			aux[j] = stoi(value);
+		}
+		// cout << aux[4] << endl;
+
+		// loop_control = loop_control || (!pointers[i].eof());
+
+		min_heap.push(aux);
+		read_times[i]++;
+	}
+
+	// cout << "Sorting index" << endl;
+
+	while (min_heap.size()){
+		// cout << min_heap.size() << endl;
+		aux = min_heap.top();
+		min_heap.pop();
+
+		sorted_file << "<";
+		for (int i = 0; i < 3; i++){
+			// cout << aux[i] << " ";
+			sorted_file << aux[i] << "," ;
+
+		}
+		sorted_file << aux[3] << ">" << endl;
+		// cout << aux[3] << endl;
+
+
+		if (read_times[aux[4]] < (MEMORY_LIMITE/INDEX_LINE_SIZE)){
+			// cout << "New value: ";
+			for (int j = 0; j < 4; j++){
+				pointers[aux[4]] >> value;
+				aux[j] = stoi(value);
+				// cout << value << " ";
+			}
+			// cout << aux[4] << endl;
+
+			min_heap.push(aux);
+			read_times[aux[4]]++;
+		}
+
+	}
+
+	for (int i = 0; i < index_split; i++){
+		pointers[i].close();
+	}
+
+	sorted_file.close();
 }

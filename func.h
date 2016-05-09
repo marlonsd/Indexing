@@ -10,9 +10,16 @@
 
 using namespace std;
 
+struct comparator {
+	bool operator()(array<int,5> A, array<int,5> B) {
+		return (
+				(A[0] > B[0]) ||									// Sorting by word id
+				((A[0] == B[0]) && (A[1] > B[1])) ||				// Sorting by document id
+				((A[0] == B[0]) && (A[1] == B[1]) && (A[3] > B[3]))	// Sorting by position
+				);
+	}
+};
+
 void cleaningWord(string& str);
-int partition(vector<array<string,4>>& arr, const int left, const int right);
-void quickSort(vector<array<string,4>>& arr, const int left, const int right, const int sz);
-bool compareData(const array<string,4>& A, array<string,4>& B);
 
 #endif
