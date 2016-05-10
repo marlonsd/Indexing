@@ -7,8 +7,8 @@
 
 #define FILENAME "htmls"
 // #define MEMORY_LIMITE 250000 // (bytes)
-// #define MEMORY_LIMITE 160 // (bytes)
-#define MEMORY_LIMITE 8000000000 // (bytes)
+#define MEMORY_LIMITE 160 // (bytes)
+// #define MEMORY_LIMITE 8000000000 // (bytes)
 
 /* <IDw, IDd, fw, position>
  * <int, int, int, int>
@@ -271,9 +271,13 @@ void sorted_index(){
 	}
 
 	// Deciding number of splits in backup_index
+	cout << "Max per bucket: " << MEMORY_LIMITE/INDEX_LINE_SIZE << endl;
+	
 	int index_split = ((total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
 						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
 						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
+
+	cout << "Number of buckets: " << index_split << endl;
 	int read_times[index_split];
 	fstream sorted_file, pointers[index_split];
 	ifstream is;
@@ -306,8 +310,10 @@ void sorted_index(){
 			aux[j] = stoi(value);
 		}
 
-		min_heap.push(aux);
-		read_times[i]++;
+		if (!pointers[i].eof()){
+			min_heap.push(aux);
+			read_times[i]++;
+		}
 	}
 
 	while (min_heap.size()){
@@ -317,18 +323,26 @@ void sorted_index(){
 		sorted_file << "<";
 		for (int i = 0; i < 3; i++){
 			sorted_file << aux[i] << "," ;
-
 		}
+
 		sorted_file << aux[3] << ">" << endl;
 
-		if (read_times[aux[4]] < (MEMORY_LIMITE/INDEX_LINE_SIZE)){
+		// cout << (MEMORY_LIMITE/INDEX_LINE_SIZE) << endl;
+
+		// if (read_times[aux[4]] < (MEMORY_LIMITE/INDEX_LINE_SIZE) && (read_times[aux[4]] < total_size_index)){
+		if (read_times[aux[4]] <= total_size_index/index_split){
+
+			// cout << read_times[aux[4]] << endl;
+
 			for (int j = 0; j < 4; j++){
 				pointers[aux[4]] >> value;
 				aux[j] = stoi(value);
 			}
 
-			min_heap.push(aux);
-			read_times[aux[4]]++;
+			if (!pointers[aux[4]].eof()){
+				min_heap.push(aux);
+				read_times[aux[4]]++;
+			}
 		}
 
 	}
