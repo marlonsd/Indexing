@@ -5,9 +5,10 @@
 #include <html/ParserDom.h>
 #include "Tokenizer.h"
 
-#define FILENAME "htmls"
-// #define MEMORY_LIMITE 250000 // (bytes)
-#define MEMORY_LIMITE 160 // (bytes)
+// #include <boost/algorithm/string.hpp>
+
+#define MEMORY_LIMITE 250000 // (bytes)
+// #define MEMORY_LIMITE 160 // (bytes)
 // #define MEMORY_LIMITE 8000000000 // (bytes)
 
 /* <IDw, IDd, fw, position>
@@ -19,6 +20,10 @@
 
 #define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
 
+
+// #define FILENAME "htmls"
+#define DIRNAME "/home/pedrinho/Documents/RI/Crawler/70 mins collect/htmls/"
+#define STOPWORDS "stopwords/"
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/backup_index"
 #define INDEX_SORTED_FILE_NAME "index/sorted_index"
@@ -49,11 +54,14 @@ void vocabulary_dump();
 
 int main(int argc, const char * argv[]) {  
 
+	vector<string> files;
 	fstream input;
 	string acc, url;
 	int pipe_count = 0, state = 0;
 	int file_index = 0;
 	std::size_t found;
+
+	files = list_dir_files(DIRNAME);
 
 	input.open(INDEX_AUX_FILE_NAME, ios::out);
 	input.close();
@@ -67,63 +75,67 @@ int main(int argc, const char * argv[]) {
 	input.open(VOCABULARY_FILE_NAME, ios::out);
 	input.close();
 
-	input.open(FILENAME, ios::in);
+	for (string file : files){
+		input.open(file, ios::in);
 
-	if (input.is_open()){
-		while (!input.eof()){
-			string aux;
-			input >> aux;
+		if (input.is_open()){
+			while (!input.eof()){
+				string aux;
+				input >> aux;
 
-			switch(state){
-				case 0:
-					found = aux.find("|||");
+				switch(state){
+					case 0:
+						found = aux.find("|||");
 
-					if (found != std::string::npos) {
-						state = 1;
-					}
-					break;
-				case 1:
-					found = aux.find("|");
+						if (found != std::string::npos) {
+							state = 1;
+						}
+						break;
+					case 1:
+						found = aux.find("|");
 
-					if (found != std::string::npos) {
-						state = 2;
-					} else {
-						url+=aux+" ";
-					}
-					break;
-				case 2:
-					found = aux.find("|||");
+						if (found != std::string::npos) {
+							state = 2;
+						} else {
+							url+=aux+" ";
+						}
+						break;
+					case 2:
+						found = aux.find("|||");
 
-					if (found != std::string::npos) {
-						state = 1;
+						if (found != std::string::npos) {
+							state = 1;
 
-						indexing(acc, file_index, url);
-						file_index++;
+							indexing(acc, file_index, url);
+							file_index++;
 
-						acc = "";
-						url = "";
+							acc = "";
+							url = "";
 
-					} else {
-						acc+=aux+" ";
-					}
-					break;
+						} else {
+							acc+=aux+" ";
+						}
+						break;
+				}
 			}
 		}
+
+		input.close();
 	}
 
-	for (auto word : vocabulary){
-		cout << "Word: \"" << word.first << "\"" << endl;
+	// for (auto word : vocabulary){
+	// 	cout << "Word: \"" << word.first << "\"" << endl;
 
-		for (auto document : inverted_index[word.first]){
-			cout << "  Document " << document.file_index << endl;
-			cout << "\t";
-			for (auto file : document.position){
-				cout << file << " ";
-			}
-			cout << endl;
-		}
-		cout << endl;
-	}
+	// 	for (auto document : inverted_index[word.first]){
+	// 		cout << "  Document " << document.file_index << endl;
+	// 		cout << "\t";
+	// 		for (auto file : document.position){
+	// 			cout << file << " ";
+	// 		}
+	// 		cout << endl;
+	// 	}
+	// 	cout << endl;
+	// }
 
 	// memory_dump();
 	sorted_index();
@@ -132,21 +144,36 @@ int main(int argc, const char * argv[]) {
 	exit(0);
 }
 
+//Parse doc's html code
 string parsing(string doc){
-	//Parse doc's html code
+	string text = "";
+
 	htmlcxx::HTML::ParserDom parser;
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
 
-	//Dump all text of the document
 	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
-	tree<htmlcxx::HTML::Node>::iterator end = dom.end(); 
-	string text = "";
 
-	for (; it != end; ++it) {
+	for (; it != dom.end(); ++it) {
+		if(it.node != 0 && dom.parent(it) != NULL){
+			string tag_name = dom.parent(it)->tagName();
+			transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
+
+			// Skipping code embedded in html
+			if ((tag_name == "script") ||
+				(tag_name == "noscript")
+				){
+				it.skip_children();
+				continue;
+			}
+		}
+
 		if ((!it->isTag()) && (!it->isComment())) {
-			text.append(it->text());
+			text.append(it->text()+" ");
+			// cout << it->text()+" ";
 		}
 	}
+
+	// cout << text << endl;
 
 	return text;
 }
@@ -270,20 +297,20 @@ void sorted_index(){
 		memory_dump();
 	}
 
-	// Deciding number of splits in backup_index
-	cout << "Max per bucket: " << MEMORY_LIMITE/INDEX_LINE_SIZE << endl;
-	
+	// Deciding number of splits in backup_index	
 	int index_split = ((total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
 						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
 						(total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
 
-	cout << "Number of buckets: " << index_split << endl;
 	int read_times[index_split];
 	fstream sorted_file, pointers[index_split];
 	ifstream is;
 	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
 	bool loop_control = false;
 	array<int,5> aux;
+
+	// cout << "Max per bucket: " << MEMORY_LIMITE/INDEX_LINE_SIZE << endl;
+	// cout << "Number of buckets: " << index_split << endl;
 
 	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
 

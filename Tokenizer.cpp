@@ -52,7 +52,9 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 
 			if (aux.size()){
 				this->normalizeWord(e);
-				v.push_back(e);
+				if (e.size()){
+					v.push_back(e);
+				}
 			}
 
 		}

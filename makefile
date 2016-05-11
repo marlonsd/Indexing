@@ -28,3 +28,8 @@ clean:
 # 	mkdir htmls logs backup cache
 
 # Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"
+
+
+# To install:
+#   libtool
+#   autotools-dev -> automake

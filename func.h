@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <fstream>
 #include <algorithm>
+#include <dirent.h>
 
 using namespace std;
 
@@ -21,5 +22,7 @@ struct comparator {
 };
 
 void cleaningWord(string& str);
+vector<string> list_dir_files(string path);
+vector<string> load_stop_words(string path);
 
 #endif

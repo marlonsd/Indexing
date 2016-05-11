@@ -46,3 +46,41 @@ void cleaningWord(string& str) {
 	  }
 	}
 }
+
+vector<string> list_dir_files(string path) {
+
+	DIR* dir;
+	dirent* pdir;
+	vector<std::string> files;
+
+	dir = opendir(path.c_str());
+
+	while (pdir = readdir(dir)) {
+		files.push_back(pdir->d_name);
+	}
+
+	return files;
+}
+
+vector<string> load_stop_words(string path){
+	string word;
+	vector<string> files, stopwords;
+	fstream input;
+	
+	files = list_dir_files(path);
+
+	for (string file : files){
+		if (input.is_open()){
+			while (!input.eof()){
+				input >> word;
+
+				if(word.size()){
+					stopwords.push_back(word);
+				}
+			}
+		}
+	}
+
+	return stopwords;
+}
+
