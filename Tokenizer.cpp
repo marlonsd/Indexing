@@ -9,6 +9,10 @@ Tokenizer::Tokenizer(const string& s){
 	// cout << s << this->tokens.size();
 }
 
+Tokenizer::Tokenizer(const string& s, const unordered_set<string>& stopwords){
+	this->generatingTokens(s, this->tokens, stopwords);
+}
+
 // Need to find out how tokens must be, especially their ending
 void Tokenizer::normalizeWord(string& s){
 	unsigned int i;
@@ -63,6 +67,33 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 	lines.clear();
 }
 
+void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unordered_set<string>& stopwords){
+	vector<string> lines, aux;
+
+	this->split(s, '\n', lines);
+
+	for (string line : lines){
+		this->split(s, ' ', aux);
+
+		for (string e : aux){
+
+			if (aux.size()){
+				this->normalizeWord(e);
+				if (e.size()){
+					unordered_set<string>::const_iterator got = stopwords.find(e);
+					// Testing if e is not a stop word
+					if (got != stopwords.end()){
+						v.push_back(e);
+					}
+				}
+			}
+
+		}
+		aux.clear();
+	}
+	lines.clear();
+}
+
 void Tokenizer::addTokens(const string& s){
 	vector<string> aux;
 
@@ -90,7 +121,7 @@ string Tokenizer::getToken(){
 
 	if (this->tokens.size()){
 		token = this->tokens.front();
-		this->tokens.erase(this->tokens.cbegin());
+		this->tokens.erase(this->tokens.begin());
 	}
 
 	return token;

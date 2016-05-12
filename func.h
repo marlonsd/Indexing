@@ -23,6 +23,6 @@ struct comparator {
 
 void cleaningWord(string& str);
 vector<string> list_dir_files(string path);
-vector<string> load_stop_words(string path);
+unordered_set<string> load_stop_words(string path);
 
 #endif

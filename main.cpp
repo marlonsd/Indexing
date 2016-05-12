@@ -22,8 +22,8 @@
 
 
 // #define FILENAME "htmls"
-#define DIRNAME "/home/pedrinho/Documents/RI/Crawler/70 mins collect/htmls/"
-#define STOPWORDS "stopwords/"
+#define DIRNAME "htmls/"
+#define STOPWORDS_PATH "stopwords/"
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/backup_index"
 #define INDEX_SORTED_FILE_NAME "index/sorted_index"
@@ -47,7 +47,7 @@ int word_index = 0, memory_usage = 0, total_size_index = 0;
 string vocabulary_buffer = "";
 
 string parsing(string doc);
-void indexing(string doc, int index, string url);
+void indexing(string doc, int index, string url, const unordered_set<string>& stopwords);
 void memory_dump();
 void sorted_index();
 void vocabulary_dump();
@@ -60,6 +60,9 @@ int main(int argc, const char * argv[]) {
 	int pipe_count = 0, state = 0;
 	int file_index = 0;
 	std::size_t found;
+	unordered_set<string> stopwords; //= load_stop_words(STOPWORDS_PATH);
+
+	// exit(0);
 
 	files = list_dir_files(DIRNAME);
 
@@ -106,7 +109,7 @@ int main(int argc, const char * argv[]) {
 						if (found != std::string::npos) {
 							state = 1;
 
-							indexing(acc, file_index, url);
+							indexing(acc, file_index, url, stopwords);
 							file_index++;
 
 							acc = "";
@@ -178,10 +181,10 @@ string parsing(string doc){
 	return text;
 }
 
-void indexing(string doc, int index, string url){
+void indexing(string doc, int index, string url, const unordered_set<string>& stopwords){
 	
 	// Generating tokens
-	Tokenizer t(parsing(doc));
+	Tokenizer t(parsing(doc), stopwords);
 
 	// Iterating through tokens
 	int word_id = 0;

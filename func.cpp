@@ -59,26 +59,35 @@ vector<string> list_dir_files(string path) {
 		files.push_back(pdir->d_name);
 	}
 
+	closedir(dir);
+
 	return files;
 }
 
-vector<string> load_stop_words(string path){
+unordered_set<string> load_stop_words(string path){
 	string word;
-	vector<string> files, stopwords;
 	fstream input;
+	vector<string> files;
+	unordered_set<string> stopwords;
 	
+	cout << path << endl;
+
 	files = list_dir_files(path);
 
 	for (string file : files){
+		cout << file << endl;
+		input.open(file, ios::in);		
 		if (input.is_open()){
 			while (!input.eof()){
 				input >> word;
 
 				if(word.size()){
-					stopwords.push_back(word);
+					stopwords.insert(word);
+					cout << word;
 				}
 			}
 		}
+		input.close();
 	}
 
 	return stopwords;
