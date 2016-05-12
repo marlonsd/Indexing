@@ -1,35 +1,24 @@
-UNAME_S := $(shell uname -s)
-TOP := $(shell pwd)
-# ifeq ($(UNAME_S),Linux)
-# 	FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
-# endif
-# ifeq ($(UNAME_S),Darwin)
-# 	FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
-# endif
-
 FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 
-indexing: main.o tokenizer.o func.o
-	g++ -std=c++11 func.o Tokenizer.o main.o $(FLAGS) -o indexing
+indexing: main.o tokenizer.o inverted_index.o func.o
+	g++ -std=c++11 func.o Inverted_Index.o Tokenizer.o main.o $(FLAGS) -o indexing
 
-main.o: main.cpp Tokenizer.h func.h
+main.o: main.cpp Tokenizer.h func.h Inverted_Index.h
 	g++ -std=c++11 $(FLAGS) -c main.cpp
 
+inverted_index.o: Inverted_Index.cpp Inverted_Index.h Tokenizer.h func.h
+	g++ -std=c++11 $(FLAGS) -c Inverted_Index.cpp
+
 tokenizer.o: Tokenizer.cpp Tokenizer.h func.h
-	g++ -std=c++11 -c Tokenizer.cpp
+	g++ -std=c++11 $(FLAGS) -c Tokenizer.cpp
 
 func.o: func.cpp func.h
-	g++ -std=c++11 -c func.cpp		
+	g++ -std=c++11 $(FLAGS) -c func.cpp		
 
 clean:
 	rm *.o indexing
 
-# dir:
-# 	mkdir htmls logs backup cache
+dir:
+	mkdir htmls index stopwords
 
 # Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"
-
-
-# To install:
-#   libtool
-#   autotools-dev -> automake

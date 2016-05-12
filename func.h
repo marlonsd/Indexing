@@ -7,7 +7,31 @@
 #include <unordered_set>
 #include <fstream>
 #include <algorithm>
+#include <unordered_map>
+#include <cstdlib>
+#include <queue>
 #include <dirent.h>
+#include <html/ParserDom.h>
+
+#define MEMORY_LIMITE 250000 // (bytes)
+// #define MEMORY_LIMITE 160 // (bytes)
+
+/* <IDw, IDd, fw, position>
+ * <int, int, int, int>
+ * 4*4 
+ * 36
+*/
+#define INDEX_LINE_SIZE 32
+
+#define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
+
+#define DIRNAME "htmls/"
+#define STOPWORDS_PATH "stopwords/"
+#define INDEX_AUX_FILE_NAME "index/aux_index"
+#define INDEX_BACKUP_FILE_NAME "index/backup_index"
+#define INDEX_SORTED_FILE_NAME "index/sorted_index"
+#define VOCABULARY_FILE_NAME "index/vocabulary"
+
 
 using namespace std;
 
@@ -21,6 +45,17 @@ struct comparator {
 	}
 };
 
+struct FileList {
+	int file_index;
+	vector<int> position;
+
+	bool operator==(const FileList &other) const {
+		return (file_index == other.file_index
+				&& position == other.position);
+	}
+};
+
+string parsing(string doc);
 void cleaningWord(string& str);
 vector<string> list_dir_files(string path);
 unordered_set<string> load_stop_words(string path);

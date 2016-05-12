@@ -1,5 +1,36 @@
 #include "func.h"
 
+//Parse doc's html code
+string parsing(string doc){
+	string text = "";
+
+	htmlcxx::HTML::ParserDom parser;
+	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
+
+	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
+
+	for (; it != dom.end(); ++it) {
+		if(it.node != 0 && dom.parent(it) != NULL){
+			string tag_name = dom.parent(it)->tagName();
+			transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
+
+			// Skipping code embedded in html
+			if ((tag_name == "script") ||
+				(tag_name == "noscript")
+				){
+				it.skip_children();
+				continue;
+			}
+		}
+
+		if ((!it->isTag()) && (!it->isComment())) {
+			text.append(it->text()+" ");
+		}
+	}
+
+	return text;
+}
+
 void cleaningWord(string& str) {
 	for(unsigned int i=0;i<str.length();i++) {
 	  str.at(i) = tolower(str.at(i));
@@ -56,7 +87,10 @@ vector<string> list_dir_files(string path) {
 	dir = opendir(path.c_str());
 
 	while (pdir = readdir(dir)) {
-		files.push_back(pdir->d_name);
+		string filename = pdir->d_name;
+		if (filename != "." && filename != ".." && filename[0] != '.'){
+			files.push_back(filename);
+		}
 	}
 
 	closedir(dir);
@@ -70,20 +104,16 @@ unordered_set<string> load_stop_words(string path){
 	vector<string> files;
 	unordered_set<string> stopwords;
 	
-	cout << path << endl;
-
 	files = list_dir_files(path);
 
 	for (string file : files){
-		cout << file << endl;
-		input.open(file, ios::in);		
+		input.open(path+file, ios::in);
 		if (input.is_open()){
 			while (!input.eof()){
 				input >> word;
 
 				if(word.size()){
 					stopwords.insert(word);
-					cout << word;
 				}
 			}
 		}

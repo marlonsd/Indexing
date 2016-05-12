@@ -1,0 +1,31 @@
+#ifndef INVERTED_INDEX_H
+#define INVERTED_INDEX_H
+
+#include "func.h"
+#include "Tokenizer.h"
+
+using namespace std;
+
+class InvertedIndex{
+private:
+	string vocabulary_buffer;
+	int memory_usage;
+	int total_size_index;
+	int word_index;
+
+	unordered_map<string, int> vocabulary;					// <word, id>
+	unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>
+
+	void memory_dump();
+
+public:
+	InvertedIndex();
+	InvertedIndex(Tokenizer& t, int index = 0);
+
+	void indexing(Tokenizer& t, int index = 0);
+	void sorted_index();
+	void vocabulary_dump();
+
+};
+
+#endif

@@ -82,7 +82,7 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unord
 				if (e.size()){
 					unordered_set<string>::const_iterator got = stopwords.find(e);
 					// Testing if e is not a stop word
-					if (got != stopwords.end()){
+					if (got == stopwords.end()){
 						v.push_back(e);
 					}
 				}
