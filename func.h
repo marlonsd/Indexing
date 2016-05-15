@@ -16,7 +16,7 @@
 #define MEMORY_LIMITE 250000 // (bytes)
 // #define MEMORY_LIMITE 160 // (bytes)
 
-/* <IDw, IDd, fw, position>
+/* <word id, doc id, frequency of word, position>
  * <int, int, int, int>
  * 4*4 
  * 36
@@ -55,6 +55,7 @@ struct FileList {
 	}
 };
 
+void split(const string& s, char c, vector<string>& v);
 string parsing(string doc);
 void cleaningWord(string& str);
 vector<string> list_dir_files(string path);

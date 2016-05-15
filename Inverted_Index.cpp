@@ -226,3 +226,90 @@ void InvertedIndex::vocabulary_dump(){
 	f.close();
 
 }
+
+vector<string> InvertedIndex::get_vocabulary(){
+	string word;
+	vector<string> vocabulary;
+	fstream f;
+
+	f.open(VOCABULARY_FILE_NAME, ios::in);
+
+	if (f.is_open()){
+		f >> word;
+
+		vocabulary.push_back(word);
+	}
+
+	f.close();
+
+	return vocabulary;
+}
+
+void InvertedIndex::load_vocabulary(){
+	int word_index = 0;
+	string word;
+	fstream f;
+
+	f.open(VOCABULARY_FILE_NAME, ios::in);
+
+	if (f.is_open()){
+		f >> word;
+
+		if (word.size()){
+			this->vocabulary[word] = word_index;
+			word_index++;
+		}
+	}
+
+	f.close();
+}
+
+void InvertedIndex::load_full_index(){
+	string entry;
+	vector<string> vocabulary, split_entry;
+	fstream f;
+
+	f.open(INDEX_SORTED_FILE_NAME, ios::in);
+
+	if (f.is_open()){
+		vocabulary = this->get_vocabulary();
+
+		f >> entry;
+
+		// Removing "<" and ">"
+		entry.pop_back();
+		entry.erase(0);
+
+		// <word id, doc id, frequency of word, position>
+		split(entry, ',' , split_entry);
+
+		if (stoi(split_entry[0]) < vocabulary.size()){
+
+			string token = vocabulary[stoi(split_entry[0])];
+			int index = stoi(split_entry[1]);
+			int word_id = stoi(split_entry[3]);
+
+			// Testinf if token is not already in the index
+			auto search = this->inverted_index.find(token);
+			if (search == this->inverted_index.end()){
+				this->inverted_index[token] = vector<FileList>();
+			}
+
+			// Testinf if token had already been seen in document index
+			if (this->inverted_index[token].size() > 0 &&
+				this->inverted_index[token].back().file_index == index) {
+					this->inverted_index[token].back().position.push_back(word_id);
+			}
+			else {
+				FileList list;
+				list.file_index = index;
+				list.position.push_back(word_id);
+
+				this->inverted_index[token].push_back(list);
+			}
+
+		}
+	}
+
+	f.close();
+}

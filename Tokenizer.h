@@ -10,7 +10,6 @@ private:
 	vector<string> tokens;
 
 	void normalizeWord(string& s);
-	void split(const string& s, char c, vector<string>& v);
 	void generatingTokens(const string& s, vector<string>& v);
 	void generatingTokens(const string& s, vector<string>& v, const unordered_set<string>& stopwords);
 

@@ -25,32 +25,13 @@ void Tokenizer::normalizeWord(string& s){
 
 }
 
-// Splits a string "s" in "c"
-void Tokenizer::split(const string& s, char c, vector<string>& v) {
-	string::size_type i = 0;
-	string::size_type j = s.find(c);
-
-	if (j == string::npos) {
-		v.push_back(s);
-	} else {
-		while (j != string::npos) {
-			v.push_back(s.substr(i, j-i));
-			i = ++j;
-			j = s.find(c, j);
-
-			if (j == string::npos)
-			v.push_back(s.substr(i, s.length()));
-		}
-	}
-}
-
 void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 	vector<string> lines, aux;
 
-	this->split(s, '\n', lines);
+	split(s, '\n', lines);
 
 	for (string line : lines){
-		this->split(s, ' ', aux);
+		split(s, ' ', aux);
 
 		for (string e : aux){
 
@@ -70,10 +51,10 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unordered_set<string>& stopwords){
 	vector<string> lines, aux;
 
-	this->split(s, '\n', lines);
+	split(s, '\n', lines);
 
 	for (string line : lines){
-		this->split(s, ' ', aux);
+		split(s, ' ', aux);
 
 		for (string e : aux){
 

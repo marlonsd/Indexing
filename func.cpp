@@ -1,5 +1,24 @@
 #include "func.h"
 
+// Splits a string "s" in "c"
+void split(const string& s, char c, vector<string>& v) {
+	string::size_type i = 0;
+	string::size_type j = s.find(c);
+
+	if (j == string::npos) {
+		v.push_back(s);
+	} else {
+		while (j != string::npos) {
+			v.push_back(s.substr(i, j-i));
+			i = ++j;
+			j = s.find(c, j);
+
+			if (j == string::npos)
+			v.push_back(s.substr(i, s.length()));
+		}
+	}
+}
+
 //Parse doc's html code
 string parsing(string doc){
 	string text = "";

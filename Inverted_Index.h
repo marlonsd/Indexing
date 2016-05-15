@@ -17,6 +17,7 @@ private:
 	unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>
 
 	void memory_dump();
+	vector<string> get_vocabulary();
 
 public:
 	InvertedIndex();
@@ -25,6 +26,8 @@ public:
 	void indexing(Tokenizer& t, int index = 0);
 	void sorted_index();
 	void vocabulary_dump();
+	void load_vocabulary();
+	void load_full_index();
 
 };
 
