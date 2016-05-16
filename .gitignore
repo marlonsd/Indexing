@@ -3,6 +3,7 @@
 *.out
 *.o
 indexing
+search
 htmls*
 aux_file
 index/*

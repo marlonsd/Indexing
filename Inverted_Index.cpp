@@ -135,7 +135,7 @@ void InvertedIndex::sorted_index(){
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
 
-	if (!(index_split < MEMORY_LIMITE/INDEX_LINE_SIZE)){
+	if !(index_split < MEMORY_LIMITE/INDEX_LINE_SIZE){
 		cout << "Too many things" << endl;
 	}
 
