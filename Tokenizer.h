@@ -20,6 +20,8 @@ public:
 
 	void addTokens(const string& s);
 	void addTokens(const vector<string>& v);
+	void addTokens(const string& s, const unordered_set<string>& stopwords);
+	void addTokens(const vector<string>& v, const unordered_set<string>& stopwords);
 
 	string getToken();
 

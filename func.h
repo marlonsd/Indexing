@@ -25,12 +25,14 @@
 
 #define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
 
+// #define DIRNAME "../coleta_marlon/"
 #define DIRNAME "htmls/"
 #define STOPWORDS_PATH "stopwords/"
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/backup_index"
 #define INDEX_SORTED_FILE_NAME "index/sorted_index"
 #define VOCABULARY_FILE_NAME "index/vocabulary"
+#define DOC_ID_FILE_NAME "index/doc_id"
 
 
 using namespace std;

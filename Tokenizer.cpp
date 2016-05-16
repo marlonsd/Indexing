@@ -79,20 +79,21 @@ void Tokenizer::addTokens(const string& s){
 	vector<string> aux;
 
 	this->generatingTokens(s, aux);
-
-	for (string e : aux){
-		if (e.size()){
-			this->tokens.push_back(e);
-		}
-	}
-
-	aux.clear();
 }
 
-void Tokenizer::addTokens(const vector<string>& v){
+void Tokenizer::addTokens(const string& s, const unordered_set<string>& stopwords){
+	this->generatingTokens(s, this->tokens, stopwords);
+}
+
+void Tokenizer::addTokens(const vector<string>& v, const unordered_set<string>& stopwords){
 	for (string e : v){
+		this->normalizeWord(e);
 		if (e.size()){
-			this->tokens.push_back(e);
+			unordered_set<string>::const_iterator got = stopwords.find(e);
+			// Testing if e is not a stop word
+			if (got == stopwords.end()){
+				this->tokens.push_back(e);
+			}
 		}
 	}
 }
