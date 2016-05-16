@@ -8,8 +8,7 @@ int main(int argc, const char* argv[]) {
 	vector<string> files;
 	fstream input, doc_id;
 	string acc, url, last_read = "";
-	int state = 0, count = 0;
-	int file_index = 0;
+	int state = 0, file_index = 0;
 	size_t found;
 	unordered_set<string> stopwords = load_stop_words(STOPWORDS_PATH);
 	InvertedIndex index;
@@ -38,7 +37,6 @@ int main(int argc, const char* argv[]) {
 						found = aux.find("|||");
 
 						if (found != std::string::npos) {
-							count++;
 							state = 1;
 						}
 						break;
@@ -55,15 +53,11 @@ int main(int argc, const char* argv[]) {
 						found = aux.find("|||");
 
 						if (found != std::string::npos) {
-							count++;
-							// cout << count << endl;
 
 							if (!input.eof()) {
 								input >> last_read;
 
-								// cout << last_read;
 								found = last_read.find("http");
-								// cout << found;
 								if (found != std::string::npos) {
 
 									state = 1;

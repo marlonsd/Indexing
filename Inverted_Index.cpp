@@ -129,10 +129,15 @@ void InvertedIndex::sorted_index(){
 		memory_dump();
 	}
 
+	// Total Number of buckets
 	// Deciding number of splits in backup_index	
 	int index_split = ((this->total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
+
+	if (!(index_split < MEMORY_LIMITE/INDEX_LINE_SIZE)){
+		cout << "Too many things" << endl;
+	}
 
 	int read_times[index_split];
 	fstream sorted_file, pointers[index_split];
