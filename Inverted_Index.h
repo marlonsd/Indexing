@@ -18,6 +18,8 @@ private:
 
 	void memory_dump();
 	vector<string> get_vocabulary();
+	void load_vocabulary();
+	void load_full_index();
 
 public:
 	InvertedIndex();
@@ -26,8 +28,7 @@ public:
 	void indexing(Tokenizer& t, int index = 0);
 	void sorted_index();
 	void vocabulary_dump();
-	void load_vocabulary();
-	void load_full_index();
+	void load_index();
 
 };
 

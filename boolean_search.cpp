@@ -8,6 +8,8 @@ int main(int argc, const char* argv[]) {
 	InvertedIndex index;
 	Tokenizer tokens;
 
+	index.load_index();
+
 	cout << "Query: ";
 	getline(cin, query);
 

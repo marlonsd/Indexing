@@ -1,17 +1,19 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
+#include <deque>
 #include "func.h"
+
 
 using namespace std;
 
 class Tokenizer{
 private:
-	vector<string> tokens;
+	deque<string> tokens;
 
 	void normalizeWord(string& s);
-	void generatingTokens(const string& s, vector<string>& v);
-	void generatingTokens(const string& s, vector<string>& v, const unordered_set<string>& stopwords);
+	void generatingTokens(const string& s, deque<string>& v);
+	void generatingTokens(const string& s, deque<string>& v, const unordered_set<string>& stopwords);
 
 public:
 	Tokenizer();
@@ -19,9 +21,9 @@ public:
 	Tokenizer(const string& s, const unordered_set<string>& stopwords);
 
 	void addTokens(const string& s);
-	void addTokens(const vector<string>& v);
+	void addTokens(const deque<string>& v);
 	void addTokens(const string& s, const unordered_set<string>& stopwords);
-	void addTokens(const vector<string>& v, const unordered_set<string>& stopwords);
+	void addTokens(const deque<string>& v, const unordered_set<string>& stopwords);
 
 	string getToken();
 

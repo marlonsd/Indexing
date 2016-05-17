@@ -25,7 +25,7 @@ void Tokenizer::normalizeWord(string& s){
 
 }
 
-void Tokenizer::generatingTokens(const string& s, vector<string>& v){
+void Tokenizer::generatingTokens(const string& s, deque<string>& v){
 	vector<string> lines, aux;
 
 	split(s, '\n', lines);
@@ -35,9 +35,9 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 
 		for (string e : aux){
 
-			if (aux.size()){
+			if (e.size() > 1){
 				this->normalizeWord(e);
-				if (e.size()){
+				if (e.size() > 1){
 					v.push_back(e);
 				}
 			}
@@ -48,7 +48,7 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v){
 	lines.clear();
 }
 
-void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unordered_set<string>& stopwords){
+void Tokenizer::generatingTokens(const string& s, deque<string>& v, const unordered_set<string>& stopwords){
 	vector<string> lines, aux;
 
 	split(s, '\n', lines);
@@ -58,9 +58,9 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unord
 
 		for (string e : aux){
 
-			if (aux.size()){
+			if (e.size() > 1){
 				this->normalizeWord(e);
-				if (e.size()){
+				if (e.size() > 1){
 					unordered_set<string>::const_iterator got = stopwords.find(e);
 					// Testing if e is not a stop word
 					if (got == stopwords.end()){
@@ -76,25 +76,24 @@ void Tokenizer::generatingTokens(const string& s, vector<string>& v, const unord
 }
 
 void Tokenizer::addTokens(const string& s){
-	vector<string> aux;
-
-	this->generatingTokens(s, aux);
+	this->generatingTokens(s, this->tokens);
 }
 
 void Tokenizer::addTokens(const string& s, const unordered_set<string>& stopwords){
 	this->generatingTokens(s, this->tokens, stopwords);
 }
 
-void Tokenizer::addTokens(const vector<string>& v, const unordered_set<string>& stopwords){
+void Tokenizer::addTokens(const deque<string>& v, const unordered_set<string>& stopwords){
 	for (string e : v){
-		this->normalizeWord(e);
-		if (e.size()){
-			unordered_set<string>::const_iterator got = stopwords.find(e);
-			// Testing if e is not a stop word
-			if (got == stopwords.end()){
-				this->tokens.push_back(e);
+		if (e.size()  > 1)
+			this->normalizeWord(e);
+			if (e.size() > 1){
+				unordered_set<string>::const_iterator got = stopwords.find(e);
+				// Testing if e is not a stop word
+				if (got == stopwords.end()){
+					this->tokens.push_back(e);
+				}
 			}
-		}
 	}
 }
 
@@ -103,7 +102,8 @@ string Tokenizer::getToken(){
 
 	if (this->tokens.size()){
 		token = this->tokens.front();
-		this->tokens.erase(this->tokens.begin());
+		// this->tokens.erase(this->tokens.begin());
+		this->tokens.pop_front();
 	}
 
 	return token;

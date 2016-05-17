@@ -240,9 +240,11 @@ vector<string> InvertedIndex::get_vocabulary(){
 	f.open(VOCABULARY_FILE_NAME, ios::in);
 
 	if (f.is_open()){
-		f >> word;
+		while (!f.eof()){
+			f >> word;
 
-		vocabulary.push_back(word);
+			vocabulary.push_back(word);
+		}
 	}
 
 	f.close();
@@ -258,13 +260,15 @@ void InvertedIndex::load_vocabulary(){
 	f.open(VOCABULARY_FILE_NAME, ios::in);
 
 	if (f.is_open()){
-		f >> word;
+		while (!f.eof()){
+			f >> word;
 
-		if (word.size()){
 			this->vocabulary[word] = word_index;
 			word_index++;
 		}
 	}
+
+	cout << word << endl;
 
 	f.close();
 }
@@ -279,42 +283,57 @@ void InvertedIndex::load_full_index(){
 	if (f.is_open()){
 		vocabulary = this->get_vocabulary();
 
-		f >> entry;
+		while(!f.eof()){
+			f >> entry;
 
-		// Removing "<" and ">"
-		entry.pop_back();
-		entry.erase(0);
+			if (entry.size() >= 9){
+				// Removing "<" and ">"
+				if (entry.back() == '>'){
+					entry.pop_back();
+				}
 
-		// <word id, doc id, frequency of word, position>
-		split(entry, ',' , split_entry);
+				if (entry.front() == '<'){
+					entry.erase(entry.begin());
+				}
 
-		if (stoi(split_entry[0]) < vocabulary.size()){
+				// <word id, doc id, frequency of word, position>
+				split(entry, ',' , split_entry);
 
-			string token = vocabulary[stoi(split_entry[0])];
-			int index = stoi(split_entry[1]);
-			int word_id = stoi(split_entry[3]);
+				if (stoi(split_entry[0]) < vocabulary.size()){
+					string token = vocabulary[stoi(split_entry[0])];
+					int index = stoi(split_entry[1]);
+					int word_id = stoi(split_entry[3]);
 
-			// Testinf if token is not already in the index
-			auto search = this->inverted_index.find(token);
-			if (search == this->inverted_index.end()){
-				this->inverted_index[token] = vector<FileList>();
+					// Testinf if token is not already in the index
+					auto search = this->inverted_index.find(token);
+					if (search == this->inverted_index.end()){
+						this->inverted_index[token] = vector<FileList>();
+					}
+
+					// Testinf if token had already been seen in document index
+					if (this->inverted_index[token].size() > 0 &&
+						this->inverted_index[token].back().file_index == index) {
+							this->inverted_index[token].back().position.push_back(word_id);
+					}
+					else {
+						FileList list;
+						list.file_index = index;
+						list.position.push_back(word_id);
+
+						this->inverted_index[token].push_back(list);
+					}
+				}
 			}
-
-			// Testinf if token had already been seen in document index
-			if (this->inverted_index[token].size() > 0 &&
-				this->inverted_index[token].back().file_index == index) {
-					this->inverted_index[token].back().position.push_back(word_id);
-			}
-			else {
-				FileList list;
-				list.file_index = index;
-				list.position.push_back(word_id);
-
-				this->inverted_index[token].push_back(list);
-			}
-
 		}
 	}
 
 	f.close();
+
+}
+
+void InvertedIndex::load_index(){
+	cout << "Loading vocabulary" << endl;
+	this->load_vocabulary();
+	cout << "Vocabulary size = " << this->vocabulary.size() << endl;
+	this->load_full_index();
 }
