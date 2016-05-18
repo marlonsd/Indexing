@@ -1,7 +1,12 @@
+#include <chrono> // C++11 Time lib
 #include "Inverted_Index.h"
 #include "func.h"			// Defines are here
 
+using namespace std::chrono;
+
 void resetingOutputFiles();
+
+high_resolution_clock::time_point t0;
 
 int main(int argc, const char* argv[]) {  
 
@@ -12,6 +17,9 @@ int main(int argc, const char* argv[]) {
 	size_t found;
 	unordered_set<string> stopwords = load_stop_words(STOPWORDS_PATH);
 	InvertedIndex index;
+	double duration;
+
+	high_resolution_clock::time_point t1, t2;
 
 	resetingOutputFiles();
 
@@ -19,10 +27,16 @@ int main(int argc, const char* argv[]) {
 
 	doc_id.open(DOC_ID_FILE_NAME, ios::out);
 
+	// Time program started
+	t0 = high_resolution_clock::now();
+
+	cout << "reading (ms),tokenizing (ms),indexing (ms),#files,total time (s)" << endl;
+
 	for (string file : files){
 		input.open(DIRNAME+file, ios::in);
 
 		if (input.is_open()){
+			t1 = high_resolution_clock::now();
 			while (!input.eof()){
 				string aux;
 				if (!last_read.size()){
@@ -65,9 +79,32 @@ int main(int argc, const char* argv[]) {
 									// Saving URL
 									doc_id << url << endl;
 
+									// t2 = high_resolution_clock::now();
+
+									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+									// cout << duration << ",";
+
+									// t1 = high_resolution_clock::now();
+
 									Tokenizer t(parsing(acc), stopwords);
+									// t2 = high_resolution_clock::now();
+
+									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+									// cout << duration << ",";
+
+									// t1 = high_resolution_clock::now();
 									index.indexing(t, file_index);
+									// t2 = high_resolution_clock::now();
+
+									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+									// cout << duration << ",";
 									file_index++;
+
+									// duration = duration_cast<seconds>( t2 - t0 ).count();
+
+									// cout << file_index << "," << duration << endl;
 
 									acc = "";
 									url = "";
@@ -78,9 +115,32 @@ int main(int argc, const char* argv[]) {
 								// Saving URL
 								doc_id << url << endl;
 
+								// t2 = high_resolution_clock::now();
+
+								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+								// cout << duration << ",";
+
+								// t1 = high_resolution_clock::now();
+
 								Tokenizer t(parsing(acc), stopwords);
+								// t2 = high_resolution_clock::now();
+
+								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+								// cout << duration << ",";
+
+								// t1 = high_resolution_clock::now();
 								index.indexing(t, file_index);
+								// t2 = high_resolution_clock::now();
+
+								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+								// cout << duration << ",";
 								file_index++;
+
+								// duration = duration_cast<seconds>( t2 - t0 ).count();
+
+								// cout << file_index << "," << duration << endl;
 
 								acc = "";
 								url = "";

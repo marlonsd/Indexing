@@ -12,6 +12,7 @@ private:
 	int memory_usage;
 	int total_size_index;
 	int word_index;
+	int total_token;
 
 	unordered_map<string, int> vocabulary;					// <word, id>
 	unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>
@@ -29,6 +30,7 @@ public:
 	void sorted_index();
 	void vocabulary_dump();
 	void load_index();
+	vector<FileList> get_list(string& token);
 
 };
 

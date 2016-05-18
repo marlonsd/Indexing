@@ -30,3 +30,4 @@ dir:
 	mkdir htmls index stopwords
 
 # Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"
+#ulimit -n MAX OPEN FILE

@@ -6,6 +6,8 @@ InvertedIndex::InvertedIndex(){
 	this->vocabulary_buffer = "";
 	this->memory_usage = 0;
 	this->word_index = 0;
+	this->total_token = 0;
+	this->total_size_index = 0;
 }
 
 InvertedIndex::InvertedIndex(Tokenizer& t, int index){
@@ -21,8 +23,9 @@ void InvertedIndex::indexing(Tokenizer& t, int index){
 		string token = t.getToken();
 
 		if (token.size()) {
+			this->total_token++;
 
-			// Testinf if token is not already in the vocabulary
+			// Testing if token is not already in the vocabulary
 			auto search = this->vocabulary.find(token);
 			if (search == this->vocabulary.end()){
 				this->vocabulary[token] = this->word_index;
@@ -35,13 +38,13 @@ void InvertedIndex::indexing(Tokenizer& t, int index){
 				}
 			}
 
-			// Testinf if token is not already in the index
+			// Testing if token is not already in the index
 			auto search2 = this->inverted_index.find(token);
 			if (search2 == this->inverted_index.end()){
 				this->inverted_index[token] = vector<FileList>();
 			}
 
-			// Testinf if token had already been seen in document index
+			// Testing if token had already been seen in document index
 			if (this->inverted_index[token].size() > 0 &&
 				this->inverted_index[token].back().file_index == index) {
 					this->inverted_index[token].back().position.push_back(word_id);
@@ -71,11 +74,12 @@ void InvertedIndex::memory_dump(){
 	fstream f, sorted_f;
 
 	f.open(INDEX_AUX_FILE_NAME, ios::out);
+
 	for (auto word : this->vocabulary){
 		for (auto document : this->inverted_index[word.first]){
 			int list_size = document.position.size();
 			for (auto pos : document.position){
-				f << word.second << " " << document.file_index << " "  << list_size << " " << pos << endl;
+				f << word.second << " " << document.file_index << " "  << list_size << " " << pos << '\n';
 				count++;
 			}
 		}
@@ -113,7 +117,7 @@ void InvertedIndex::memory_dump(){
 		});
 
 	for (auto s : all_lines){
-		sorted_f << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << endl;
+		sorted_f << s[0] << " " << s[1] << " " << s[2] << " " << s[3] << '\n';
 	}
 
 	f.close();
@@ -128,20 +132,20 @@ void InvertedIndex::sorted_index(){
 	if (this->memory_usage) {
 		memory_dump();
 	}
-
+	cout << this->total_size_index << " " << this->total_token << endl;
 	// Total Number of buckets
 	// Deciding number of splits in backup_index	
 	int index_split = ((this->total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
-
+	cout << "# Buckets " << index_split << endl;
 	if (index_split >= MEMORY_LIMITE/INDEX_LINE_SIZE){
 		cout << "Too many things" << endl;
 	}
 
 	int read_times[index_split];
-	fstream sorted_file, pointers[index_split];
-	ifstream is;
+	fstream sorted_file;
+	ifstream pointers[index_split];
 	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
 	bool loop_control = false;
 	array<int,5> aux;
@@ -151,21 +155,26 @@ void InvertedIndex::sorted_index(){
 
 	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
 
-	for (int i = 0; i < index_split; i++){
-		pointers[i].open(INDEX_BACKUP_FILE_NAME, ios::in);
-		read_times[i] = 0;
-	}
-
 	string value;
 
+	pointers[0].open(INDEX_BACKUP_FILE_NAME, ios::in);
+	read_times[0] = 0;
+
 	for (int i = 1; i < index_split; i++){
-		for(int k = 0; k < (MEMORY_LIMITE/INDEX_LINE_SIZE)*i; k++){
+		pointers[i].open(INDEX_BACKUP_FILE_NAME, ios::in);
+		read_times[i] = 0;
+		
+		pointers[i].seekg(pointers[i-1].tellg());
+
+		for(int k = 0; k < (MEMORY_LIMITE/INDEX_LINE_SIZE); k++){
 			for (int j = 0; j < 4; j++){
-				pointers[i] >> value;
+				if (!pointers[i].eof()){
+					pointers[i] >> value;
+					cout << value << " ";
+				}
 			}
 		}
 	}
-
 
 	for (int i = 0; i < index_split; i++){
 		aux[4]=i;
@@ -189,7 +198,7 @@ void InvertedIndex::sorted_index(){
 			sorted_file << aux[i] << "," ;
 		}
 
-		sorted_file << aux[3] << ">" << endl;
+		sorted_file << aux[3] << ">" << '\n';
 
 		// cout << (MEMORY_LIMITE/INDEX_LINE_SIZE) << endl;
 
@@ -323,12 +332,11 @@ void InvertedIndex::load_full_index(){
 						this->inverted_index[token].push_back(list);
 					}
 				}
+
+				split_entry.clear();
 			}
 		}
 	}
-
-	f.close();
-
 }
 
 void InvertedIndex::load_index(){
@@ -336,4 +344,15 @@ void InvertedIndex::load_index(){
 	this->load_vocabulary();
 	cout << "Vocabulary size = " << this->vocabulary.size() << endl;
 	this->load_full_index();
+}
+
+vector<FileList> InvertedIndex::get_list(string& token){
+	vector<FileList> list;
+	auto search = this->inverted_index.find(token);
+
+	if (search != this->inverted_index.end()){
+		list = this->inverted_index[token];
+	}
+
+	return list;
 }

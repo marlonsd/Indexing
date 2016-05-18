@@ -13,8 +13,8 @@
 #include <dirent.h>
 #include <html/ParserDom.h>
 
-#define MEMORY_LIMITE 250000 // (bytes)
-// #define MEMORY_LIMITE 160 // (bytes)
+// #define MEMORY_LIMITE 250000 // (bytes)
+#define MEMORY_LIMITE 160 // (bytes)
 
 /* <word id, doc id, frequency of word, position>
  * <int, int, int, int>

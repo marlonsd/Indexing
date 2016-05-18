@@ -1,33 +1,100 @@
 #include "Inverted_Index.h"
 #include "func.h"			// Defines are here
 
+vector<int> instersection(vector<int> &v1, vector<int> &v2);
+
 int main(int argc, const char* argv[]) {  
 
-	string query;
+	string query, token;
 	std::size_t found;
 	InvertedIndex index;
 	Tokenizer tokens;
+	vector<FileList> list;
+	vector<int> all_files;
+	bool first = true;
+	// unordered_map<string, string> stopwords;					// <word, id>
 
 	index.load_index();
 
-	cout << "Query: ";
-	getline(cin, query);
 
-	tokens.addTokens(query, load_stop_words(STOPWORDS_PATH));
 
-	cout << endl;
+	// if (stopwords["para"]){
+	// 	cout << "Achei" << endl;
+	// } else {
+	// 	cout << "Não achei" << endl;
+	// }
 
-	cout << "Processing..." << endl;
-	while(tokens.size()){
-		cout << tokens.getToken() << endl;
+	while(true) {
+		cout << "Query ('q' to exit): ";
+		getline(cin, query);
+
+		if (query == "q"){
+			cout << endl << "Exiting..." << endl;			
+			break;
+		}
+
+		if (query.size() <= 1){
+			cout << endl << "ERROR: Query has to have more than one caracter." << endl << endl;
+		} else {
+
+			cout << endl << endl << "Processing..." << endl;
+
+			tokens.addTokens(query, load_stop_words(STOPWORDS_PATH));
+
+			cout << endl;
+			while(tokens.size()){
+				token = tokens.getToken();
+				cout << "Token '" << token << "' : " << endl;
+				list = index.get_list(token);
+				if (list.size()){
+					vector<int> files;
+					for (auto e : list){
+						files.push_back(e.file_index);
+						cout << "\t File " << e.file_index << endl;
+						cout << "\t\tAppears " << e.position.size() << " times"<< endl;
+						cout << "\t\tPosition";
+						if (e.position.size() > 1){
+							cout << "s";
+						}
+						cout << " [";
+						for (auto p : e.position){
+							cout << " " << p;
+						}
+						cout << " ]" <<endl;
+					}
+
+					if (first){
+						all_files = files;
+					} else {
+						all_files = instersection(all_files, files);
+					}
+				} else {
+					cout << "\t Token was not found." << endl;
+				}
+			}
+
+			cout << endl << "Documents containing all tokens: " << endl;
+			for (int i : all_files){
+				cout << i << " ";
+			}
+			cout << endl;
+
+			all_files.clear();
+
+			query = "";
+
+		}
 	}
 
-	query = "";
-
-	rewind(stdin);
-	getline(cin, query);
-
-	cout << query;
-
 	exit(0);
+}
+
+
+vector<int> instersection(vector<int> &v1, vector<int> &v2){
+
+    vector<int> v3;
+
+    set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(),back_inserter(v3));
+
+    return v3;
 }
