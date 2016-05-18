@@ -13,6 +13,7 @@ private:
 	int total_size_index;
 	int word_index;
 	int total_token;
+	int n_dumps;
 
 	unordered_map<string, int> vocabulary;					// <word, id>
 	unordered_map<string,vector<FileList>> inverted_index;	// <id_word, list of occurrences>

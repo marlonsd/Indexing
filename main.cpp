@@ -34,6 +34,8 @@ int main(int argc, const char* argv[]) {
 
 	cout << "reading (ms),tokenizing (ms),indexing (ms),#files,total time (s)" << endl;
 
+
+
 	for (string file : files){
 		input.open(DIRNAME+file, ios::in);
 
@@ -161,8 +163,10 @@ int main(int argc, const char* argv[]) {
 
 	doc_id.close();
 
-	// index.sorted_index();
-	// index.vocabulary_dump();
+	cout << "Done indexing" << endl;
+
+	index.sorted_index();
+	index.vocabulary_dump();
 
 	exit(0);
 }
@@ -173,8 +177,8 @@ void resetingOutputFiles(){
 	output.open(INDEX_AUX_FILE_NAME, ios::out);
 	output.close();
 
-	output.open(INDEX_BACKUP_FILE_NAME, ios::out);
-	output.close();
+	// output.open(INDEX_BACKUP_FILE_NAME, ios::out);
+	// output.close();
 
 	output.open(INDEX_SORTED_FILE_NAME, ios::out);
 	output.close();
