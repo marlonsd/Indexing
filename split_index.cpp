@@ -12,14 +12,22 @@ int main(int argc, const char* argv[]) {
 	// index.load_index();
 
 	in.open(INDEX_BACKUP_FILE_NAME, ios::in);
-	out.open(INDEX_OUT+id, ios::out);
+	out.open(INDEX_OUT+to_string(id), ios::out);
 
 	if (in.is_open()){
 		while (!in.eof()){
-			in >> value;
-			
-			if (!in.eof()){
-				out << value << "\n";
+			string aux = "";
+			for (int i = 0; i < 4; i++){
+				in >> value;
+				aux+=(value+" ");
+			}
+
+			if (aux.back() == ' '){
+				aux.pop_back();
+			}
+
+			if (!in.eof() && out.is_open()){
+				out << aux << "\n";
 			}
 
 			local_size++;
@@ -29,7 +37,7 @@ int main(int argc, const char* argv[]) {
 				out.close();
 				id++;
 				local_size = 0;
-				out.open(INDEX_OUT+id, ios::out);
+				out.open(INDEX_OUT+to_string(id), ios::out);
 			}
 		}
 
