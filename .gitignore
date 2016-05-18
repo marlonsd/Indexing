@@ -4,6 +4,7 @@
 *.o
 indexing
 search
+split
 htmls*
 aux_file
 index/*
