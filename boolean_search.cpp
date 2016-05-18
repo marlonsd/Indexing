@@ -14,9 +14,12 @@ int main(int argc, const char* argv[]) {
 	bool first = true;
 	// unordered_map<string, string> stopwords;					// <word, id>
 
-	index.load_index();
+	// index.load_index();
 
 
+	index.sorted_index();
+
+	exit(0);
 
 	// if (stopwords["para"]){
 	// 	cout << "Achei" << endl;

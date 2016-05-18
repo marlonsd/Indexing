@@ -19,36 +19,7 @@ void split(const string& s, char c, vector<string>& v) {
 	}
 }
 
-//Parse doc's html code
-string parsing(string doc){
-	string text = "";
 
-	htmlcxx::HTML::ParserDom parser;
-	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
-
-	tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
-
-	for (; it != dom.end(); ++it) {
-		if(it.node != 0 && dom.parent(it) != NULL){
-			string tag_name = dom.parent(it)->tagName();
-			transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
-
-			// Skipping code embedded in html
-			if ((tag_name == "script") ||
-				(tag_name == "noscript")
-				){
-				it.skip_children();
-				continue;
-			}
-		}
-
-		if ((!it->isTag()) && (!it->isComment())) {
-			text.append(it->text()+" ");
-		}
-	}
-
-	return text;
-}
 
 void cleaningWord(string& str) {
 	for(unsigned int i=0;i<str.length();i++) {

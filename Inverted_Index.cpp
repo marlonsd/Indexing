@@ -132,7 +132,7 @@ void InvertedIndex::sorted_index(){
 	if (this->memory_usage) {
 		memory_dump();
 	}
-	cout << this->total_size_index << " " << this->total_token << endl;
+	// this->total_size_index = 91347974;
 	// Total Number of buckets
 	// Deciding number of splits in backup_index	
 	int index_split = ((this->total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
@@ -144,26 +144,34 @@ void InvertedIndex::sorted_index(){
 	}
 
 	int read_times[index_split];
+	cout << "Inst ok" << endl;	
 	fstream sorted_file;
+	cout << "Inst ok" << endl;	
 	ifstream pointers[index_split];
+	cout << "Inst ok" << endl;	
 	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
+	cout << "Inst ok" << endl;	
 	bool loop_control = false;
+	cout << "Inst ok" << endl;	
 	array<int,5> aux;
 
 	// cout << "Max per bucket: " << MEMORY_LIMITE/INDEX_LINE_SIZE << endl;
 	// cout << "Number of buckets: " << index_split << endl;
 
-	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
-
 	string value;
 
-	pointers[0].open(INDEX_BACKUP_FILE_NAME, ios::in);
+	cout << "Inst ok" << endl;	
+
+	pointers[0].open(INDEX_BACKUP_FILE_NAME);
 	read_times[0] = 0;
 
+	cout << "First ok" << endl;
+
 	for (int i = 1; i < index_split; i++){
-		pointers[i].open(INDEX_BACKUP_FILE_NAME, ios::in);
+		cout << i << endl;
+		pointers[i].open(INDEX_BACKUP_FILE_NAME);
 		read_times[i] = 0;
-		
+
 		pointers[i].seekg(pointers[i-1].tellg());
 
 		for(int k = 0; k < (MEMORY_LIMITE/INDEX_LINE_SIZE); k++){
@@ -175,6 +183,9 @@ void InvertedIndex::sorted_index(){
 			}
 		}
 	}
+
+	cout << "Correctly positioned" << endl;
+	cout << endl;
 
 	for (int i = 0; i < index_split; i++){
 		aux[4]=i;
@@ -188,6 +199,8 @@ void InvertedIndex::sorted_index(){
 			read_times[i]++;
 		}
 	}
+
+	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
 
 	while (min_heap.size()){
 		aux = min_heap.top();

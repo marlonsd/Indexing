@@ -12,9 +12,10 @@
 #include <queue>
 #include <dirent.h>
 #include <html/ParserDom.h>
+// #include <boost/algorithm/string.hpp>
 
-// #define MEMORY_LIMITE 250000 // (bytes)
-#define MEMORY_LIMITE 160 // (bytes)
+#define MEMORY_LIMITE 250000 // (bytes)
+// #define MEMORY_LIMITE 160 // (bytes)
 
 /* <word id, doc id, frequency of word, position>
  * <int, int, int, int>
@@ -25,8 +26,8 @@
 
 #define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
 
-// #define DIRNAME "../coleta_marlon/"
-#define DIRNAME "htmls/"
+#define DIRNAME "../coleta_marlon/"
+// #define DIRNAME "htmls/"
 #define STOPWORDS_PATH "stopwords/"
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/backup_index"
@@ -58,7 +59,6 @@ struct FileList {
 };
 
 void split(const string& s, char c, vector<string>& v);
-string parsing(string doc);
 void cleaningWord(string& str);
 vector<string> list_dir_files(string path);
 unordered_set<string> load_stop_words(string path);

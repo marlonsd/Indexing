@@ -1,4 +1,4 @@
-FLAGS += -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
+FLAGS += -funsigned-char -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 
 all: indexing bsearch
 
@@ -14,7 +14,7 @@ inverted_index.o: Inverted_Index.cpp Inverted_Index.h Tokenizer.h func.h
 tokenizer.o: Tokenizer.cpp Tokenizer.h func.h
 	g++ -std=c++11 $(FLAGS) -c Tokenizer.cpp
 
-func.o: func.cpp func.h
+func.o: func.cpp func.h Tokenizer.h
 	g++ -std=c++11 $(FLAGS) -c func.cpp		
 
 clean:
