@@ -32,7 +32,7 @@ int main(int argc, const char* argv[]) {
 	// Time program started
 	t0 = high_resolution_clock::now();
 
-	cout << "reading (ms),tokenizing (ms),indexing (ms),#files,total time (s)" << endl;
+	cout << "reading (ms),tokenizing (ms),indexing (ms),#files,total time (s), sorting, voc dump" << endl;
 
 
 
@@ -165,8 +165,21 @@ int main(int argc, const char* argv[]) {
 
 	cout << "Done indexing" << endl;
 
+	t1 = high_resolution_clock::now();
 	index.sorted_index();
+	t2 = high_resolution_clock::now();
+
+	duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+	cout << duration << ",";
+
+	t1 = high_resolution_clock::now();
 	index.vocabulary_dump();
+	t2 = high_resolution_clock::now();
+
+	duration = duration_cast<milliseconds>( t2 - t1 ).count();
+	
+	cout << duration << ",";
 
 	exit(0);
 }
