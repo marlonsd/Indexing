@@ -35,7 +35,7 @@ void Tokenizer::generatingTokens(const string& s, deque<string>& v){
 
 		for (string e : aux){
 
-			if (e.size() > 1){
+			if (e.size() > 1 && e[0] != '&'){
 				this->normalizeWord(e);
 				if (e.size() > 1 && e.size() < 30){
 					v.push_back(e);
@@ -58,7 +58,7 @@ void Tokenizer::generatingTokens(const string& s, deque<string>& v, const unorde
 
 		for (string e : aux){
 
-			if (e.size() > 1){
+			if (e.size() > 1 && e[0] != '&'){
 				this->normalizeWord(e);
 				if (e.size() > 1 && e.size() < 30){
 					unordered_set<string>::const_iterator got = stopwords.find(e);
@@ -89,7 +89,7 @@ void Tokenizer::addTokens(const string& s, const unordered_set<string>& stopword
 
 void Tokenizer::addTokens(const deque<string>& v, const unordered_set<string>& stopwords){
 	for (string e : v){
-		if (e.size()  > 1)
+		if (e.size() > 1 && e[0] != '&')
 			this->normalizeWord(e);
 			if (e.size() > 1 && e.size() < 30){
 				unordered_set<string>::const_iterator got = stopwords.find(e);

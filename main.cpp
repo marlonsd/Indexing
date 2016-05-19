@@ -5,7 +5,7 @@
 using namespace std::chrono;
 
 void resetingOutputFiles();
-string parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopwords);
+void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopwords);
 
 high_resolution_clock::time_point t0;
 
@@ -83,32 +83,32 @@ int main(int argc, const char* argv[]) {
 									// Saving URL
 									doc_id << url << endl;
 
-									// t2 = high_resolution_clock::now();
+									t2 = high_resolution_clock::now();
 
-									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+									duration = duration_cast<milliseconds>( t2 - t1 ).count();
 
-									// cout << duration << ",";
+									cout << duration << ",";
 
-									// t1 = high_resolution_clock::now();
+									t1 = high_resolution_clock::now();
 									parsing(acc, t, stopwords);
 									// Tokenizer t(parsing(acc), stopwords);
-									// t2 = high_resolution_clock::now();
+									t2 = high_resolution_clock::now();
 
-									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+									duration = duration_cast<milliseconds>( t2 - t1 ).count();
 
-									// cout << duration << ",";
+									cout << duration << ",";
 
-									// t1 = high_resolution_clock::now();
+									t1 = high_resolution_clock::now();
 									index.indexing(t, file_index);
-									// t2 = high_resolution_clock::now();
+									t2 = high_resolution_clock::now();
 
-									// duration = duration_cast<milliseconds>( t2 - t1 ).count();
-									// cout << duration << ",";
+									duration = duration_cast<milliseconds>( t2 - t1 ).count();
+									cout << duration << ",";
 									file_index++;
 
-									// duration = duration_cast<seconds>( t2 - t0 ).count();
+									duration = duration_cast<seconds>( t2 - t0 ).count();
 
-									// cout << file_index << "," << duration << endl;
+									cout << file_index << "," << duration << endl;
 
 									acc = "";
 									url = "";
@@ -119,32 +119,32 @@ int main(int argc, const char* argv[]) {
 								// Saving URL
 								doc_id << url << endl;
 
-								// t2 = high_resolution_clock::now();
+								t2 = high_resolution_clock::now();
 
-								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+								duration = duration_cast<milliseconds>( t2 - t1 ).count();
 
-								// cout << duration << ",";
+								cout << duration << ",";
 
-								// t1 = high_resolution_clock::now();
+								t1 = high_resolution_clock::now();
 								parsing(acc, t, stopwords);
 								// Tokenizer t(parsing(acc), stopwords);
-								// t2 = high_resolution_clock::now();
+								t2 = high_resolution_clock::now();
 
-								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
+								duration = duration_cast<milliseconds>( t2 - t1 ).count();
 
-								// cout << duration << ",";
+								cout << duration << ",";
 
-								// t1 = high_resolution_clock::now();
+								t1 = high_resolution_clock::now();
 								index.indexing(t, file_index);
-								// t2 = high_resolution_clock::now();
+								t2 = high_resolution_clock::now();
 
-								// duration = duration_cast<milliseconds>( t2 - t1 ).count();
-								// cout << duration << ",";
+								duration = duration_cast<milliseconds>( t2 - t1 ).count();
+								cout << duration << ",";
 								file_index++;
 
-								// duration = duration_cast<seconds>( t2 - t0 ).count();
+								duration = duration_cast<seconds>( t2 - t0 ).count();
 
-								// cout << file_index << "," << duration << endl;
+								cout << file_index << "," << duration << endl;
 
 								acc = "";
 								url = "";
@@ -188,8 +188,8 @@ void resetingOutputFiles(){
 }
 
 //Parse doc's html code
-string parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopwords){
-	string text = "";
+void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopwords){
+	// string text = "";
 
 	htmlcxx::HTML::ParserDom parser;
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
@@ -204,7 +204,8 @@ string parsing(const string& doc, Tokenizer& t, const unordered_set<string>& sto
 
 			// Skipping code embedded in html
 			if ((tag_name == "script") ||
-				(tag_name == "noscript")
+				(tag_name == "noscript") ||
+				(tag_name == "style")
 				){
 				it.skip_children();
 				continue;
@@ -212,10 +213,10 @@ string parsing(const string& doc, Tokenizer& t, const unordered_set<string>& sto
 		}
 
 		if ((!it->isTag()) && (!it->isComment())) {
-			text.append(it->text()+" ");
+			// text.append(it->text()+" ");
 			t.addTokens(it->text(), stopwords);
 		}
 	}
 
-	return text;
+	// return text;
 }

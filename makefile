@@ -1,6 +1,6 @@
 FLAGS += -funsigned-char -I /usr/local/include/htmlcxx -L/usr/local/lib -lhtmlcxx
 
-all: indexing bsearch split
+all: indexing bsearch split clear
 
 indexing: main.o tokenizer.o inverted_index.o func.o
 	g++ -std=c++11 func.o Inverted_Index.o Tokenizer.o main.o $(FLAGS) -o indexing
@@ -34,6 +34,12 @@ split.o: split_index.cpp Tokenizer.h func.h Inverted_Index.h
 
 dir:
 	mkdir htmls index stopwords
+
+clear: html_sanity.o tokenizer.o inverted_index.o func.o
+	g++ -std=c++11 func.o Inverted_Index.o Tokenizer.o clean_html.o $(FLAGS) -o sanity
+
+html_sanity.o: clean_html.cpp Tokenizer.h func.h Inverted_Index.h
+	g++ -std=c++11 $(FLAGS) -c clean_html.cpp
 
 # Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"
 #ulimit -n MAX OPEN FILE
