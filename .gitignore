@@ -5,6 +5,7 @@
 indexing
 search
 split
+sanity
 htmls*
 aux_file
 index/*
