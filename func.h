@@ -27,8 +27,8 @@
 
 #define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
 
-// #define DIRNAME "../coleta_marlon/"
-#define DIRNAME "htmls/"
+#define DIRNAME "../coleta_marlon/"
+// #define DIRNAME "htmls/"
 #define STOPWORDS_PATH "stopwords/"
 #define INDEX_AUX_FILE_NAME "index/aux_index"
 #define INDEX_BACKUP_FILE_NAME "index/split/backup_index"
