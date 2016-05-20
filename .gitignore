@@ -11,3 +11,4 @@ aux_file
 index/*
 out*
 alt*
+!alt_main.cpp
