@@ -39,6 +39,8 @@ int main(int argc, const char* argv[]) {
 	for (string file : files){
 		input.open(DIRNAME+file, ios::in);
 
+		cout << file << endl;
+
 		if (input.is_open()){
 			t1 = high_resolution_clock::now();
 			while (!input.eof()){

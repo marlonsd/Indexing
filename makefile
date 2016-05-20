@@ -41,5 +41,11 @@ clear: html_sanity.o tokenizer.o inverted_index.o func.o
 html_sanity.o: clean_html.cpp Tokenizer.h func.h Inverted_Index.h
 	g++ -std=c++11 $(FLAGS) -c clean_html.cpp
 
+alt: alt.o tokenizer.o inverted_index.o func.o
+	g++ -std=c++11 func.o Inverted_Index.o Tokenizer.o alt_main.o $(FLAGS) -o alt
+
+alt.o: alt_main.cpp Tokenizer.h func.h Inverted_Index.h
+	g++ -std=c++11 $(FLAGS) -c alt_main.cpp
+
 # Run in ubuntu: export LD_LIBRARY_PATH="/usr/local/lib"
 #ulimit -n MAX OPEN FILE
