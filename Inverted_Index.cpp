@@ -10,11 +10,21 @@ InvertedIndex::InvertedIndex(){
 
 	this->vocabulary = {};
 	this->inverted_index = {};
+
+	for (int i = 0; i < 4; i++){
+		this->previous[i] = 0;
+	}
 }
 
 InvertedIndex::InvertedIndex(Tokenizer& t, int index){
 	InvertedIndex();
 	this->indexing(t, index);
+}
+
+void InvertedIndex::reset_distance(){
+	for (int i = 0; i < 4; i++){
+		this->previous[i] = 0;
+	}
 }
 
 void InvertedIndex::indexing(Tokenizer& t, int index){
@@ -140,7 +150,6 @@ void InvertedIndex::sorted_index(){
 		memory_dump();
 	}
 
-
 	//this->total_size_index = 114543866;
 	//this->total_token = 114543866;
 	//this->n_dumps = 14661;
@@ -200,8 +209,11 @@ void InvertedIndex::sorted_index(){
 			// }
 		}
 
-		cout << min_heap.size() << endl;
-		int heap_size = 1;
+		// cout << min_heap.size() << endl;
+		// int heap_size = 1;
+
+		this->reset_distance();
+
 		while (min_heap.size()){
 
 			// Getting smallest tuple
@@ -210,11 +222,14 @@ void InvertedIndex::sorted_index(){
 
 			// string buffer = "";
 
+			this->distance_diff(aux);
+
 			// Saving smallest tuple
 			for (int j = 0; j < 3; j++){
 				out << aux[j] << " " ;
 				// buffer += aux[j] + " ";
 			}
+
 			out << aux[3] << '\n';
 			// buffer += aux[3] + '\0';
 
@@ -385,9 +400,11 @@ void InvertedIndex::load_index(){
 
 vector<FileList> InvertedIndex::get_list(string& token){
 	vector<FileList> list = {};
-	int line[4] = {-1,-1,-1,-1};
+	array<int,4> line = {-1,-1,-1,-1};
 	ifstream f;
 	string s = "";
+
+	this->reset_distance();
 
 	auto search = this->vocabulary.find(token);
 	if (search != this->vocabulary.end()){
@@ -400,6 +417,8 @@ vector<FileList> InvertedIndex::get_list(string& token){
 				line[i] = stoi(s);
 			}
 
+			this->distance_rest(line);
+
 			if (line[0] == vocabulary[token]){
 				FileList temp;
 				int rep = line[2];
@@ -410,9 +429,12 @@ vector<FileList> InvertedIndex::get_list(string& token){
 					for (int r = 0; r < rep - 1; r++ ){				
 						for (int i = 0; i < 4; i++){
 							f >> s;
+							line[i] = stoi(s);
 						}
 
-						temp.position.push_back(stoi(s));						
+						this->distance_rest(line);
+
+						temp.position.push_back(line[3]);						
 					}
 				}
 
@@ -429,4 +451,94 @@ vector<FileList> InvertedIndex::get_list(string& token){
 	}
 
 	return list;
+}
+
+void InvertedIndex::distance_diff(array<int,5>& v){
+	int prev_pos = v[0], aux;
+	bool change = false;
+
+	if ( prev_pos && (prev_pos - this->previous[0])){
+		this->reset_distance();
+		change = true;
+	} else {
+		if(v[1] != this->previous[1]){
+			this->previous[1] = 0;
+			this->previous[3] = 0;
+		}
+	}
+
+	for (int i = 0; i < 4; i++){
+		aux = v[i];
+		v[i] -= this->previous[i];
+		cout << v[i] << " ";
+		this->previous[i] = aux;
+	}
+
+	cout << "\t";
+
+	for (int i = 0; i < 4; i++){
+		cout << this->previous[i] << " ";
+	}
+
+	cout << endl;
+
+	if (change){
+		this->previous[0] = prev_pos;
+	}
+
+	this->previous[2] = 0;
+
+}
+
+void InvertedIndex::distance_rest(array<int,4>& v){
+	int aux;
+
+	if (v[0] != 0 || v[1] != 0){
+		this->previous[1] = 0;
+		this->previous[3] = 0;
+	}
+
+	// for (int i = 0; i < 4; i++){
+	// 	cout << this->previous[i] << " ";
+	// }
+
+	// cout << "\t";
+
+	for (int i = 0; i < 4; i++){
+		// aux = v[i];
+		v[i] += this->previous[i];
+		cout << v[i] << " ";
+		this->previous[i] = v[i];
+	}
+	
+	cout << endl;
+
+	this->previous[2] = 0;
+
+}
+
+void InvertedIndex::rest(){
+	ifstream f;
+	array<int,4> aux;
+	string s;
+
+	f.open(INDEX_SORTED_FILE_NAME);
+
+	while(!f.eof()){
+		for (int i = 0; i < 4; i++){
+			f >> s;
+			aux[i] = stoi(s);
+		}
+
+		distance_rest(aux);
+
+		// for (int i = 0; i < 3; i++){
+		// 	cout << aux[i] << " ";
+		// }
+
+
+
+		// cout << aux[3] << endl;
+
+	}
 }
