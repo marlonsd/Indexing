@@ -130,119 +130,6 @@ void InvertedIndex::memory_dump(){
 	this->n_dumps++;
 }
 
-// void InvertedIndex::sorted_index(){
-
-// 	if (this->memory_usage) {
-// 		memory_dump();
-// 	}
-// 	// this->total_size_index = 91347974;
-// 	// Total Number of buckets
-// 	// Deciding number of splits in backup_index	
-// 	int index_split = ((this->total_size_index % (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
-// 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)) + 1 :	// In case number is odd
-// 						(this->total_size_index/(MEMORY_LIMITE/INDEX_LINE_SIZE)));		// In case number is even
-// 	cout << "# Buckets " << index_split << endl;
-// 	if (index_split >= MEMORY_LIMITE/INDEX_LINE_SIZE){
-// 		cout << "Too many things" << endl;
-// 	}
-
-// 	int read_times[index_split];
-// 	cout << "Inst ok" << endl;	
-// 	fstream sorted_file;
-// 	cout << "Inst ok" << endl;	
-// 	ifstream pointers[index_split];
-// 	cout << "Inst ok" << endl;	
-// 	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
-// 	cout << "Inst ok" << endl;	
-// 	bool loop_control = false;
-// 	cout << "Inst ok" << endl;	
-// 	array<int,5> aux;
-
-// 	// cout << "Max per bucket: " << MEMORY_LIMITE/INDEX_LINE_SIZE << endl;
-// 	// cout << "Number of buckets: " << index_split << endl;
-
-// 	string value;
-
-// 	cout << "Inst ok" << endl;	
-
-// 	pointers[0].open(INDEX_BACKUP_FILE_NAME);
-// 	read_times[0] = 0;
-
-// 	cout << "First ok" << endl;
-
-// 	for (int i = 1; i < index_split; i++){
-// 		cout << i << endl;
-// 		pointers[i].open(INDEX_BACKUP_FILE_NAME);
-// 		read_times[i] = 0;
-
-// 		pointers[i].seekg(pointers[i-1].tellg());
-
-// 		for(int k = 0; k < (MEMORY_LIMITE/INDEX_LINE_SIZE); k++){
-// 			for (int j = 0; j < 4; j++){
-// 				if (!pointers[i].eof()){
-// 					pointers[i] >> value;
-// 					cout << value << " ";
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	cout << "Correctly positioned" << endl;
-// 	cout << endl;
-
-// 	for (int i = 0; i < index_split; i++){
-// 		aux[4]=i;
-// 		for (int j = 0; j < 4; j++){
-// 			pointers[i] >> value;
-// 			aux[j] = stoi(value);
-// 		}
-
-// 		if (!pointers[i].eof()){
-// 			min_heap.push(aux);
-// 			read_times[i]++;
-// 		}
-// 	}
-
-// 	sorted_file.open(INDEX_SORTED_FILE_NAME, ios::out);
-
-// 	while (min_heap.size()){
-// 		aux = min_heap.top();
-// 		min_heap.pop();
-
-// 		sorted_file << "<";
-// 		for (int i = 0; i < 3; i++){
-// 			sorted_file << aux[i] << "," ;
-// 		}
-
-// 		sorted_file << aux[3] << ">" << '\n';
-
-// 		// cout << (MEMORY_LIMITE/INDEX_LINE_SIZE) << endl;
-
-// 		// if (read_times[aux[4]] < (MEMORY_LIMITE/INDEX_LINE_SIZE) && (read_times[aux[4]] < total_size_index)){
-// 		if (read_times[aux[4]] <= this->total_size_index/index_split){
-
-// 			// cout << read_times[aux[4]] << endl;
-
-// 			for (int j = 0; j < 4; j++){
-// 				pointers[aux[4]] >> value;
-// 				aux[j] = stoi(value);
-// 			}
-
-// 			if (!pointers[aux[4]].eof()){
-// 				min_heap.push(aux);
-// 				read_times[aux[4]]++;
-// 			}
-// 		}
-
-// 	}
-
-// 	for (int i = 0; i < index_split; i++){
-// 		pointers[i].close();
-// 	}
-
-// 	sorted_file.close();
-// }
-
 void InvertedIndex::sorted_index(){
 	int i = 0;
 	array<int,5> aux;
@@ -305,9 +192,9 @@ void InvertedIndex::sorted_index(){
 			count[j] = 0;
 
 			// File hasn't ended yet
-			if (!p[j].eof()){
+			// if (!p[j].eof()){
 				min_heap.push(aux);
-			}
+			// }
 		}
 
 		cout << min_heap.size() << endl;
@@ -330,9 +217,12 @@ void InvertedIndex::sorted_index(){
 			// Testing if file hasn't ended yet
 			if (!p[aux[4]].eof()){
 
+				// bool eof = false;
+
 				for (int j = 0; j < 4; j++){
 					p[aux[4]] >> value;
 					aux[j] = stoi(value);
+					
 				}
 
 				if (!p[aux[4]].eof()){
