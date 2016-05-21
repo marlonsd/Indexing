@@ -425,44 +425,46 @@ void InvertedIndex::load_full_index(){
 		vocabulary = this->get_vocabulary();
 
 		while(!f.eof()){
-			f >> entry;
+			string aux = "";
+			entry = "";
 
-			if (entry.size() >= 9){
-				// Removing "<" and ">"
-				if (entry.back() == '>'){
-					entry.pop_back();
+			for (int i = 0; i < 3; i++){
+				f >> aux;
+				entry += aux + ",";
+			}
+
+			f >> aux;
+			entry += aux;
+
+			// f >> split_entry[0] >> split_entry[1] >> split_entry[2] >> split_entry[3];
+
+			cout << entry << endl;
+
+			// <word id, doc id, frequency of word, position>
+			split(entry, ',' , split_entry);
+
+			if (stoi(split_entry[0]) < vocabulary.size()){
+				string token = vocabulary[stoi(split_entry[0])];
+				int index = stoi(split_entry[1]);
+				int word_id = stoi(split_entry[3]);
+
+				// Testinf if token is not already in the index
+				auto search = this->inverted_index.find(token);
+				if (search == this->inverted_index.end()){
+					this->inverted_index[token] = vector<FileList>();
 				}
 
-				if (entry.front() == '<'){
-					entry.erase(entry.begin());
+				// Testinf if token had already been seen in document index
+				if (this->inverted_index[token].size() > 0 &&
+					this->inverted_index[token].back().file_index == index) {
+						this->inverted_index[token].back().position.push_back(word_id);
 				}
+				else {
+					FileList list;
+					list.file_index = index;
+					list.position.push_back(word_id);
 
-				// <word id, doc id, frequency of word, position>
-				split(entry, ',' , split_entry);
-
-				if (stoi(split_entry[0]) < vocabulary.size()){
-					string token = vocabulary[stoi(split_entry[0])];
-					int index = stoi(split_entry[1]);
-					int word_id = stoi(split_entry[3]);
-
-					// Testinf if token is not already in the index
-					auto search = this->inverted_index.find(token);
-					if (search == this->inverted_index.end()){
-						this->inverted_index[token] = vector<FileList>();
-					}
-
-					// Testinf if token had already been seen in document index
-					if (this->inverted_index[token].size() > 0 &&
-						this->inverted_index[token].back().file_index == index) {
-							this->inverted_index[token].back().position.push_back(word_id);
-					}
-					else {
-						FileList list;
-						list.file_index = index;
-						list.position.push_back(word_id);
-
-						this->inverted_index[token].push_back(list);
-					}
+					this->inverted_index[token].push_back(list);
 				}
 
 				split_entry.clear();
@@ -475,15 +477,52 @@ void InvertedIndex::load_index(){
 	// cout << "Loading vocabulary" << endl;
 	this->load_vocabulary();
 	// cout << "Vocabulary size = " << this->vocabulary.size() << endl;
-	this->load_full_index();
+	// this->load_full_index();
 }
 
 vector<FileList> InvertedIndex::get_list(string& token){
-	vector<FileList> list;
-	auto search = this->inverted_index.find(token);
+	vector<FileList> list = {};
+	int line[4] = {-1,-1,-1,-1};
+	ifstream f;
+	string s = "";
 
-	if (search != this->inverted_index.end()){
-		list = this->inverted_index[token];
+	auto search = this->vocabulary.find(token);
+	if (search != this->vocabulary.end()){
+		f.open(INDEX_SORTED_FILE_NAME);
+
+		while(line[0] <= vocabulary[token] && !f.eof()){
+
+			for (int i = 0; i < 4; i++){
+				f >> s;
+				line[i] = stoi(s);
+			}
+
+			if (line[0] == vocabulary[token]){
+				FileList temp;
+				int rep = line[2];
+				temp.file_index = line[1];
+				temp.position.push_back(line[3]);
+
+				if (!f.eof()){
+					for (int r = 0; r < rep - 1; r++ ){				
+						for (int i = 0; i < 4; i++){
+							f >> s;
+						}
+
+						temp.position.push_back(stoi(s));						
+					}
+				}
+
+				list.push_back(temp);
+			} else {
+				for (int r = 0; r < line[2]-1; r++){
+					for (int i = 0; i < 4; i++){
+						f >> s;
+					}
+				}
+			}
+		}
+
 	}
 
 	return list;

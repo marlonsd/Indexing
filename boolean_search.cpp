@@ -12,20 +12,11 @@ int main(int argc, const char* argv[]) {
 	vector<FileList> list;
 	vector<int> all_files;
 	bool first = true;
-	// unordered_map<string, string> stopwords;					// <word, id>
 
-	// index.load_index();
+	index.load_index();
 
 
-	index.sorted_index();
-
-	exit(0);
-
-	// if (stopwords["para"]){
-	// 	cout << "Achei" << endl;
-	// } else {
-	// 	cout << "Não achei" << endl;
-	// }
+	// index.sorted_index();
 
 	while(true) {
 		cout << "Query ('q' to exit): ";
@@ -45,6 +36,9 @@ int main(int argc, const char* argv[]) {
 			tokens.addTokens(query, load_stop_words(STOPWORDS_PATH));
 
 			cout << endl;
+
+			first = true;
+
 			while(tokens.size()){
 				token = tokens.getToken();
 				cout << "Token '" << token << "' : " << endl;
@@ -68,8 +62,10 @@ int main(int argc, const char* argv[]) {
 
 					if (first){
 						all_files = files;
+						first = !first;
 					} else {
-						all_files = instersection(all_files, files);
+						vector<int> new_files = instersection(all_files, files);
+						all_files = new_files;
 					}
 				} else {
 					cout << "\t Token was not found." << endl;

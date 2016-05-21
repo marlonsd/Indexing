@@ -193,7 +193,7 @@ void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopw
 			// Skipping code embedded in html
 			if ((tag_name == "script") ||
 				(tag_name == "noscript") ||
-				// (tag_name == "style") ||
+				(tag_name == "style") ||
 				(tag_name == "textarea")
 				){
 				it.skip_children();
