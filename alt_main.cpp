@@ -43,8 +43,6 @@ int main(int argc, const char* argv[]) {
 	for (string file : files){
 		input.open(DIRNAME+file, ios::in);
 
-		cout << "File:" << file << endl;
-
 		if (input.is_open()){
 			t1 = high_resolution_clock::now();
 			while (!input.eof()){
@@ -112,8 +110,37 @@ int main(int argc, const char* argv[]) {
 						if (aux == "|||"){
 
 							// DO INDEXING
+							// cout << acc << endl;
 
-							cout << "FIM DO HTML DE " << url << endl;
+							doc_id << url << endl;
+
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+							cout << duration << ",";
+
+							t1 = high_resolution_clock::now();
+							parsing(acc, t, stopwords);
+							// Tokenizer t(parsing(acc), stopwords);
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+							cout << duration << ",";
+
+							t1 = high_resolution_clock::now();
+							index.indexing(t, file_index);
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+							cout << duration << ",";
+							file_index++;
+
+							duration = duration_cast<seconds>( t2 - t0 ).count();
+
+							cout << file_index << "," << duration << endl;
+
 
 							state = 1;
 							acc = "";

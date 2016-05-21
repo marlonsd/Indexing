@@ -15,7 +15,7 @@ int main(int argc, const char* argv[]) {
 	fstream input, doc_id;
 	string acc, url, last_read = "";
 	int state = 0, file_index = 0;
-	size_t found;
+	size_t found, alt_found;
 	unordered_set<string> stopwords = load_stop_words(STOPWORDS_PATH);
 	InvertedIndex index;
 	double duration;
@@ -39,122 +39,100 @@ int main(int argc, const char* argv[]) {
 	for (string file : files){
 		input.open(DIRNAME+file, ios::in);
 
-		cout << file << endl;
-
 		if (input.is_open()){
 			t1 = high_resolution_clock::now();
 			while (!input.eof()){
 				string aux;
-				if (!last_read.size()){
-					input >> aux;
-				} else {
-					aux = last_read;
-					last_read = "";
-				}
+				input >> aux;
 
 				switch(state){
 					case 0:
-						found = aux.find("|||");
-
-						if (found != std::string::npos) {
+						if (aux == "|||"){
 							state = 1;
 						}
-						break;
-					case 1:
-						found = aux.find("|");
 
-						if (found != std::string::npos) {
+						break;
+
+					case 1:
+						if (aux == "|"){
 							state = 2;
 						} else {
 							url+=aux+" ";
 						}
+
 						break;
+
 					case 2:
-						found = aux.find("|||");
+						transform(aux.begin(), aux.end(), aux.begin(), ::tolower);
 
-						if (found != std::string::npos) {
+						found = aux.find("<html");
+						alt_found = aux.find("<!doctype");
 
-							if (!input.eof()) {
-								input >> last_read;
-
-								found = last_read.find("http");
-								if (found != std::string::npos) {
-
-									state = 1;
-
-									// Saving URL
-									doc_id << url << endl;
-
-									t2 = high_resolution_clock::now();
-
-									duration = duration_cast<milliseconds>( t2 - t1 ).count();
-
-									cout << duration << ",";
-
-									t1 = high_resolution_clock::now();
-									parsing(acc, t, stopwords);
-									// Tokenizer t(parsing(acc), stopwords);
-									t2 = high_resolution_clock::now();
-
-									duration = duration_cast<milliseconds>( t2 - t1 ).count();
-
-									cout << duration << ",";
-
-									t1 = high_resolution_clock::now();
-									index.indexing(t, file_index);
-									t2 = high_resolution_clock::now();
-
-									duration = duration_cast<milliseconds>( t2 - t1 ).count();
-									cout << duration << ",";
-									file_index++;
-
-									duration = duration_cast<seconds>( t2 - t0 ).count();
-
-									cout << file_index << "," << duration << endl;
-
-									acc = "";
-									url = "";
-								}
-							} else {
-								state = 1;
-
-								// Saving URL
-								doc_id << url << endl;
-
-								t2 = high_resolution_clock::now();
-
-								duration = duration_cast<milliseconds>( t2 - t1 ).count();
-
-								cout << duration << ",";
-
-								t1 = high_resolution_clock::now();
-								parsing(acc, t, stopwords);
-								// Tokenizer t(parsing(acc), stopwords);
-								t2 = high_resolution_clock::now();
-
-								duration = duration_cast<milliseconds>( t2 - t1 ).count();
-
-								cout << duration << ",";
-
-								t1 = high_resolution_clock::now();
-								index.indexing(t, file_index);
-								t2 = high_resolution_clock::now();
-
-								duration = duration_cast<milliseconds>( t2 - t1 ).count();
-								cout << duration << ",";
-								file_index++;
-
-								duration = duration_cast<seconds>( t2 - t0 ).count();
-
-								cout << file_index << "," << duration << endl;
-
-								acc = "";
-								url = "";
-							}
-
-						} else {
-							acc+=aux+" ";
+						if ((found != std::string::npos && found == 0) ||
+							(alt_found != std::string::npos && alt_found == 0)){
+							acc = aux+" ";
+							state = 3;
 						}
+
+						if (aux == "|||"){
+							state = 1;
+							url = "";
+						}
+
+						break;
+
+					case 3:
+
+						found = aux.find("</html>");
+
+						acc+=aux+" ";
+
+						// 7 is "</html>" size
+						if (found != std::string::npos && (aux.size() - found) == 7){
+							state = 4;
+						}
+
+						break;
+
+					case 4:
+
+						if (aux == "|||"){
+
+							doc_id << url << endl;
+
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+							cout << duration << ",";
+
+							t1 = high_resolution_clock::now();
+							parsing(acc, t, stopwords);
+							// Tokenizer t(parsing(acc), stopwords);
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+
+							cout << duration << ",";
+
+							t1 = high_resolution_clock::now();
+							index.indexing(t, file_index);
+							t2 = high_resolution_clock::now();
+
+							duration = duration_cast<milliseconds>( t2 - t1 ).count();
+							cout << duration << ",";
+							file_index++;
+
+							duration = duration_cast<seconds>( t2 - t0 ).count();
+
+							cout << file_index << "," << duration << endl;
+
+
+							state = 1;
+							acc = "";
+							url = "";
+						}
+
 						break;
 				}
 			}
@@ -192,9 +170,6 @@ void resetingOutputFiles(){
 	output.open(INDEX_AUX_FILE_NAME, ios::out);
 	output.close();
 
-	// output.open(INDEX_BACKUP_FILE_NAME, ios::out);
-	// output.close();
-
 	output.open(INDEX_SORTED_FILE_NAME, ios::out);
 	output.close();
 
@@ -204,8 +179,6 @@ void resetingOutputFiles(){
 
 //Parse doc's html code
 void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopwords){
-	// string text = "";
-
 	htmlcxx::HTML::ParserDom parser;
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(doc);
 
@@ -220,7 +193,8 @@ void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopw
 			// Skipping code embedded in html
 			if ((tag_name == "script") ||
 				(tag_name == "noscript") ||
-				(tag_name == "style")
+				// (tag_name == "style") ||
+				(tag_name == "textarea")
 				){
 				it.skip_children();
 				continue;
@@ -228,10 +202,7 @@ void parsing(const string& doc, Tokenizer& t, const unordered_set<string>& stopw
 		}
 
 		if ((!it->isTag()) && (!it->isComment())) {
-			// text.append(it->text()+" ");
 			t.addTokens(it->text(), stopwords);
 		}
 	}
-
-	// return text;
 }

@@ -249,8 +249,14 @@ void InvertedIndex::sorted_index(){
 	string value;
 	priority_queue<array<int,5>, vector<array<int,5>>, comparator> min_heap;
 
+	if (this->memory_usage){
+		memory_dump();
+	}
+
 	cout << "Total tokens: " << this->total_size_index << " " << this->total_token << endl;
 	cout << "Memory Limit: " << (MEMORY_LIMITE/INDEX_LINE_SIZE) << endl;
+	cout << "Total of files: " << this->n_dumps << endl;
+
 
 	while(i < this->n_dumps){
 		int n_files; // = (((this->n_dumps - i) < (MEMORY_LIMITE/INDEX_LINE_SIZE)) ?
@@ -267,7 +273,11 @@ void InvertedIndex::sorted_index(){
 			this->n_dumps++;
 		}
 
-		// cout << "Evaliating from " << i << " to " << i+n_files << endl; 
+		if (n_files > MAX_OS_OPEN_FILE){
+			n_files = MAX_OS_OPEN_FILE;
+		}
+
+		cout << "Evaliating from " << i << " to " << i+n_files << endl; 
 
 		ifstream p[n_files];
 		
