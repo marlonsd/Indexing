@@ -155,14 +155,17 @@ void InvertedIndex::sorted_index(){
 						// this->n_dumps - i : 
 						// (MEMORY_LIMITE/INDEX_LINE_SIZE));
 		ofstream out;
+		// FILE* out;
 
 		if ((this->n_dumps - i) <= (MEMORY_LIMITE/INDEX_LINE_SIZE)){
 			n_files = this->n_dumps - i;
-			out.open(INDEX_SORTED_FILE_NAME, ofstream::out);
+			out.open(INDEX_SORTED_FILE_NAME, ios::out);
+			// out = fopen(INDEX_SORTED_FILE_NAME, "wb");
 			cout << INDEX_SORTED_FILE_NAME << endl;
 		} else {
 			n_files = (MEMORY_LIMITE/INDEX_LINE_SIZE);
-			out.open(INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps), ofstream::out);
+			out.open(INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps), ios::out);
+			// out = fopen((INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps)).c_str(), "wb");
 			cout << INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps) << endl;
 			this->n_dumps++;
 		}
@@ -205,11 +208,20 @@ void InvertedIndex::sorted_index(){
 			aux = min_heap.top();
 			min_heap.pop();
 
+			// string buffer = "";
+
 			// Saving smallest tuple
 			for (int j = 0; j < 3; j++){
 				out << aux[j] << " " ;
+				// buffer += aux[j] + " ";
 			}
 			out << aux[3] << '\n';
+			// buffer += aux[3] + '\0';
+
+			// out.write(buffer.c_str(), buffer.size());
+
+			// fwrite(buffer.c_str(), sizeof(char), buffer.size(), out);
+
 			//cout << heap_size << endl;
 			//heap_size++;
 			//count[aux[4]]++;
@@ -222,7 +234,7 @@ void InvertedIndex::sorted_index(){
 				for (int j = 0; j < 4; j++){
 					p[aux[4]] >> value;
 					aux[j] = stoi(value);
-					
+
 				}
 
 				if (!p[aux[4]].eof()){
@@ -246,6 +258,7 @@ void InvertedIndex::sorted_index(){
 		}
 
 		out.close();
+		// fclose(out);
 	}
 }
 
