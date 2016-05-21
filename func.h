@@ -27,7 +27,7 @@
 
 #define LOCAL_VOCABULARY_SIZE 30000 //(bytes)
 
-#define DIRNAME "../coleta_marlon_small/"
+#define DIRNAME "../coleta_marlon/"
 // #define DIRNAME "/media/pedrinho/coleta_marlon/"
 // #define DIRNAME "htmls/"
 #define STOPWORDS_PATH "stopwords/"
@@ -43,7 +43,7 @@
 #define DOC_ID_FILE_NAME "index/doc_id"
 // #define DOC_ID_FILE_NAME "/media/msdias/index/doc_id"
 
-#define MAX_OS_OPEN_FILE 7000
+#define MAX_OS_OPEN_FILE 3000
 
 
 using namespace std;

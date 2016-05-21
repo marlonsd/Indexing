@@ -102,7 +102,7 @@ unordered_set<string> load_stop_words(string path){
 			while (!input.eof()){
 				input >> word;
 
-				if(word.size()){
+				if(word.size() > 1){
 					stopwords.insert(word);
 				}
 			}

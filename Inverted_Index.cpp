@@ -253,6 +253,11 @@ void InvertedIndex::sorted_index(){
 		memory_dump();
 	}
 
+
+	//this->total_size_index = 114543866;
+	//this->total_token = 114543866;
+	//this->n_dumps = 14661;
+
 	cout << "Total tokens: " << this->total_size_index << " " << this->total_token << endl;
 	cout << "Memory Limit: " << (MEMORY_LIMITE/INDEX_LINE_SIZE) << endl;
 	cout << "Total of files: " << this->n_dumps << endl;
@@ -266,25 +271,29 @@ void InvertedIndex::sorted_index(){
 
 		if ((this->n_dumps - i) <= (MEMORY_LIMITE/INDEX_LINE_SIZE)){
 			n_files = this->n_dumps - i;
-			out.open(INDEX_SORTED_FILE_NAME);
+			out.open(INDEX_SORTED_FILE_NAME, ofstream::out);
+			cout << INDEX_SORTED_FILE_NAME << endl;
 		} else {
 			n_files = (MEMORY_LIMITE/INDEX_LINE_SIZE);
-			out.open(INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps));
+			out.open(INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps), ofstream::out);
+			cout << INDEX_BACKUP_FILE_NAME+to_string(this->n_dumps) << endl;
 			this->n_dumps++;
 		}
 
-		if (n_files > MAX_OS_OPEN_FILE){
-			n_files = MAX_OS_OPEN_FILE;
+		if (n_files > (MAX_OS_OPEN_FILE - 1)){
+			n_files = MAX_OS_OPEN_FILE-1;
 		}
 
-		cout << "Evaliating from " << i << " to " << i+n_files << endl; 
+		int count[n_files];
+
+		cout << n_files << endl;
+		cout << "Evaliating from " << i << " to " << i+n_files << endl << endl; 
 
 		ifstream p[n_files];
 		
 		for (int j = 0; j < n_files; j++){
 			p[j].open(INDEX_BACKUP_FILE_NAME+to_string(i));
 			i++;
-			aux[4] = j; // Locating read file
 
 			// Reading line
 			for (int k = 0; k < 4; k++){
@@ -292,14 +301,19 @@ void InvertedIndex::sorted_index(){
 				aux[k] = stoi(value);
 			}
 
+			aux[4] = j; // Locating read file
+			count[j] = 0;
+
 			// File hasn't ended yet
 			if (!p[j].eof()){
 				min_heap.push(aux);
 			}
 		}
 
-
+		cout << min_heap.size() << endl;
+		int heap_size = 1;
 		while (min_heap.size()){
+
 			// Getting smallest tuple
 			aux = min_heap.top();
 			min_heap.pop();
@@ -309,7 +323,10 @@ void InvertedIndex::sorted_index(){
 				out << aux[j] << " " ;
 			}
 			out << aux[3] << '\n';
-
+			//cout << heap_size << endl;
+			//heap_size++;
+			//count[aux[4]]++;
+			//cout << aux[4] << " " << count[aux[4]] << " [ "<< aux[0] << " " << aux[1] << " " << aux[2] << " " << aux[3] << " ]" << endl;
 			// Testing if file hasn't ended yet
 			if (!p[aux[4]].eof()){
 
@@ -321,6 +338,8 @@ void InvertedIndex::sorted_index(){
 				if (!p[aux[4]].eof()){
 					min_heap.push(aux);
 				}
+			} else {
+				cout << "File " << aux[4] << " done." << endl;
 			}
 
 		}
@@ -329,8 +348,8 @@ void InvertedIndex::sorted_index(){
 		for (int j = 0; j < n_files; j++){
 			p[j].close();
 			// TODO: DELETE FILE
-			string filename = INDEX_BACKUP_FILE_NAME+to_string(i-n_files+j);
-			remove(filename.c_str());
+			//string filename = INDEX_BACKUP_FILE_NAME+to_string(i-n_files+j);
+			//remove(filename.c_str());
 				
 
 			// cout << "Removing file " << INDEX_BACKUP_FILE_NAME+to_string(i-n_files+j) << endl;
