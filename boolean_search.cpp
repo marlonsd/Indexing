@@ -2,6 +2,7 @@
 #include "func.h"			// Defines are here
 
 vector<int> instersection(vector<int> &v1, vector<int> &v2);
+void load_doc_id(vector<string>& doc_id);
 
 int main(int argc, const char* argv[]) {  
 
@@ -12,9 +13,11 @@ int main(int argc, const char* argv[]) {
 	vector<FileList> list;
 	vector<int> all_files;
 	bool first = true;
+	vector<string> doc_id;
+
+	load_doc_id(doc_id);
 
 	index.load_index();
-	// index.sorted_index();
 
 	while(true) {
 		cout << "Query ('q' to exit): ";
@@ -72,7 +75,7 @@ int main(int argc, const char* argv[]) {
 
 			cout << endl << "Documents containing all tokens: " << endl;
 			for (int i : all_files){
-				cout << i << " ";
+				cout << i << ". " << doc_id[i] << endl;
 			}
 			cout << endl;
 
@@ -94,4 +97,20 @@ vector<int> instersection(vector<int> &v1, vector<int> &v2){
     set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(),back_inserter(v3));
 
     return v3;
+}
+
+void load_doc_id(vector<string>& doc_id){
+	ifstream file;
+
+	file.open(DOC_ID_FILE_NAME, ios::in);
+
+	while(!file.eof()){
+		string s;
+
+		file >> s;
+
+		if (s.size()){
+			doc_id.push_back(s);
+		}
+	}
 }

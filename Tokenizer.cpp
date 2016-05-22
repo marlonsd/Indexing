@@ -6,7 +6,6 @@ Tokenizer::Tokenizer(){
 
 Tokenizer::Tokenizer(const string& s){
 	this->generatingTokens(s, this->tokens);
-	// cout << s << this->tokens.size();
 }
 
 Tokenizer::Tokenizer(const string& s, const unordered_set<string>& stopwords){
@@ -66,11 +65,7 @@ void Tokenizer::generatingTokens(const string& s, deque<string>& v, const unorde
 					if (got == stopwords.end()){
 						v.push_back(e);
 					}
-				} else {
-					if (e.size() > 30){
-						// cout << e << endl;
-					}
-				}
+				} 
 			}
 
 		}
@@ -106,7 +101,6 @@ string Tokenizer::getToken(){
 
 	if (this->tokens.size()){
 		token = this->tokens.front();
-		// this->tokens.erase(this->tokens.begin());
 		this->tokens.pop_front();
 	}
 
