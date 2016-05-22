@@ -454,36 +454,17 @@ vector<FileList> InvertedIndex::get_list(string& token){
 }
 
 void InvertedIndex::distance_diff(array<int,5>& v){
-	int prev_pos = v[0], aux;
-	bool change = false;
+	int aux;
 
-	if ( prev_pos && (prev_pos - this->previous[0])){
-		this->reset_distance();
-		change = true;
-	} else {
-		if(v[1] != this->previous[1]){
-			this->previous[1] = 0;
-			this->previous[3] = 0;
-		}
+	if ((v[0] && (v[0] - this->previous[0])) || v[1] != this->previous[1]){
+		this->previous[1] = 0;
+		this->previous[3] = 0;
 	}
 
 	for (int i = 0; i < 4; i++){
 		aux = v[i];
 		v[i] -= this->previous[i];
-		cout << v[i] << " ";
 		this->previous[i] = aux;
-	}
-
-	cout << "\t";
-
-	for (int i = 0; i < 4; i++){
-		cout << this->previous[i] << " ";
-	}
-
-	cout << endl;
-
-	if (change){
-		this->previous[0] = prev_pos;
 	}
 
 	this->previous[2] = 0;
@@ -491,27 +472,16 @@ void InvertedIndex::distance_diff(array<int,5>& v){
 }
 
 void InvertedIndex::distance_rest(array<int,4>& v){
-	int aux;
 
 	if (v[0] != 0 || v[1] != 0){
 		this->previous[1] = 0;
 		this->previous[3] = 0;
 	}
 
-	// for (int i = 0; i < 4; i++){
-	// 	cout << this->previous[i] << " ";
-	// }
-
-	// cout << "\t";
-
 	for (int i = 0; i < 4; i++){
-		// aux = v[i];
-		v[i] += this->previous[i];
-		cout << v[i] << " ";
+		v[i] = v[i]+ this->previous[i];
 		this->previous[i] = v[i];
 	}
-	
-	cout << endl;
 
 	this->previous[2] = 0;
 
@@ -524,21 +494,23 @@ void InvertedIndex::rest(){
 
 	f.open(INDEX_SORTED_FILE_NAME);
 
+	this->reset_distance();
+
 	while(!f.eof()){
 		for (int i = 0; i < 4; i++){
 			f >> s;
 			aux[i] = stoi(s);
 		}
 
-		distance_rest(aux);
+		if (!f.eof()){
+			distance_rest(aux);
 
-		// for (int i = 0; i < 3; i++){
-		// 	cout << aux[i] << " ";
-		// }
+			for (int i = 0; i < 3; i++){
+				cout << aux[i] << " ";
+			}
 
-
-
-		// cout << aux[3] << endl;
+			cout << aux[3] << endl;
+		}
 
 	}
 }

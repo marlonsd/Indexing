@@ -14,9 +14,6 @@ int main(int argc, const char* argv[]) {
 	bool first = true;
 
 	index.load_index();
-
-	// index.rest();
-	// exit(0);
 	// index.sorted_index();
 
 	while(true) {
